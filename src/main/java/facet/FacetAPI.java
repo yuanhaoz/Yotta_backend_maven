@@ -32,17 +32,12 @@ import app.success;
 
 /**
  * 分面树构建：主题分面
- *
  * @author 郑元浩
  */
 
 @Path("/FacetAPI")
 @Api(value = "FacetAPI")
 public class FacetAPI {
-
-    public static void main(String[] args) {
-
-    }
 
     @GET
     @Path("/getTopicFacet")
@@ -55,11 +50,9 @@ public class FacetAPI {
     public static Response getTopicFacet(
             @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className,
             @DefaultValue("抽象资料型别") @ApiParam(value = "主题名", required = true) @QueryParam("TermName") String topicName) {
-
         Response response = null;
         List<FacetComplex> facetComplexList = new ArrayList<FacetComplex>();
         List<FacetRelation> facetRelationList = FacetDAO.getFacetRelation(className, topicName, 1, 2);
-
         /**
          * 读取facet，获得知识点的一级/二级分面
          */
@@ -109,7 +102,6 @@ public class FacetAPI {
                 }
             }
         }
-
         response = Response.status(200).entity(facetComplexList).build();
         return response;
     }

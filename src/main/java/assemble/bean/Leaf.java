@@ -7,9 +7,7 @@ package assemble.bean;
  * 3. fragment_id: 碎片id
  * 4. type: 碎片类型（leaf）
  * 5. flag: 判断是文本还是图片碎片的标志位
- * <p>
  * 多余：name属性原来的数据中是有的
- *
  * @author 郑元浩
  * @date 2016年12月4日
  */
@@ -70,14 +68,6 @@ public class Leaf {
         this.flag = flag;
     }
 
-    /**
-     * @param url
-     * @param content
-     * @param fragment_id
-     * @param scratchTime
-     * @param type
-     * @param flag
-     */
     public Leaf(String url, String content, String fragment_id,
                 String scratchTime, String type, String flag) {
         super();
@@ -89,13 +79,19 @@ public class Leaf {
         this.flag = flag;
     }
 
-    /**
-     *
-     */
     public Leaf() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
-
+    @Override
+    public String toString() {
+        return "Leaf{" +
+                "url='" + url + '\'' +
+                ", content='" + content + '\'' +
+                ", fragment_id='" + fragment_id + '\'' +
+                ", scratchTime='" + scratchTime + '\'' +
+                ", type='" + type + '\'' +
+                ", flag='" + flag + '\'' +
+                '}';
+    }
 }

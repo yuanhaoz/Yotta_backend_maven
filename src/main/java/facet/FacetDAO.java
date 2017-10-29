@@ -12,28 +12,20 @@ import facet.bean.FacetSimple;
 
 /**
  * 分面树构建需要的类
- *
  * @author 郑元浩
  * @date 2016年12月5日
  */
 public class FacetDAO {
 
-    public static void main(String[] args) {
-        // TODO Auto-generated method stub
-
-    }
-
     /**
      * 得到某个领域某个主题的某一级所有分面信息
-     *
-     * @param className
-     * @param topicName
-     * @param facetLayer
-     * @return
+     * @param className 课程名
+     * @param topicName 主题名
+     * @param facetLayer 分面层级
+     * @return 简单分面列表信息
      */
     public static List<FacetSimple> getFacet(String className, String topicName, int facetLayer) {
         List<FacetSimple> facetSimpleList = new ArrayList<FacetSimple>();
-
         /**
          * 读取facet和facet_relation，获得知识点的多级分面
          */
@@ -56,79 +48,55 @@ public class FacetDAO {
         } finally {
             mysql.closeconnection();
         }
-
         return facetSimpleList;
     }
 
     /**
      * 得到某个领域某个主题的两级分面关系
-     *
-     * @param className
-     * @param topicName
-     * @param parentLayer
-     * @param childLayer
-     * @return
+     * @param className 课程名
+     * @param topicName 主题名
+     * @param parentLayer 父分面层级
+     * @param childLayer 子分面层级
+     * @return 分面关系列表
      */
     public static List<FacetRelation> getFacetRelation(String className, String topicName, int parentLayer, int childLayer) {
         List<FacetRelation> facetRelationList = new ArrayList<FacetRelation>();
-
-        /**
-         * 读取facet，获得知识点的子分面分面
-         */
-        List<FacetSimple> facetSimpleList = getFacet(className, topicName, childLayer);
-        /**
-         * 读取facet_relation，获得知识点的子分面及其对应的父分面信息
-         */
-        if (facetSimpleList.size() != 0) {
-            for (int i = 0; i < facetSimpleList.size(); i++) {
-                FacetSimple facetSimple = facetSimpleList.get(i);
-                String facetName = facetSimple.getFacetName();
-                mysqlUtils mysql = new mysqlUtils();
-                String sql = "select ChildFacet,ChildLayer,ParentFacet,ParentLayer from "
-                        + Config.FACET_RELATION_TABLE + " where ClassName=? and TermName=? "
-                        + "and ChildFacet=? and ChildLayer=?";
-                List<Object> params = new ArrayList<Object>();
-                params.add(className);
-                params.add(topicName);
-                params.add(facetName);
-                params.add(childLayer);
-                try {
-                    List<Map<String, Object>> resultsRelation = mysql.returnMultipleResult(sql, params);
-                    /**
-                     * 一个二级标题只对应一个一级标题，因此返回记录应该为1条
-                     */
-//					Log.log(resultsRelation.size());
-                    if (resultsRelation.size() == 1) {
-                        Map<String, Object> mapRelation = resultsRelation.get(0);
-                        String parentFacet = mapRelation.get("ParentFacet").toString();
-//						Log.log(parentFacet);
-                        FacetRelation facetRelation = new FacetRelation(facetName, childLayer, parentFacet, parentLayer);
-                        facetRelationList.add(facetRelation);
-//						Log.log(facetRelation);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                } finally {
-                    mysql.closeconnection();
-                }
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select ChildFacet, ChildLayer, ParentFacet, ParentLayer from "
+                + Config.FACET_RELATION_TABLE + " where ClassName=? and TermName=? "
+                + "and ParentLayer = ? and ChildLayer = ?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(className);
+        params.add(topicName);
+        params.add(parentLayer);
+        params.add(childLayer);
+        try {
+            List<Map<String, Object>> resultsRelation = mysql.returnMultipleResult(sql, params);
+            for (int i = 0; i < resultsRelation.size(); i++) {
+                Map<String, Object> mapRelation = resultsRelation.get(i);
+                String parentFacet = mapRelation.get("ParentFacet").toString();
+                String childFacet = mapRelation.get("ChildFacet").toString();
+                FacetRelation facetRelation = new FacetRelation(childFacet, childLayer, parentFacet, parentLayer);
+                Log.log(facetRelation);
+                facetRelationList.add(facetRelation);
             }
-        } else {
-            Log.log(topicName + " doesn't have any second facets...");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            mysql.closeconnection();
         }
         return facetRelationList;
     }
 
     /**
      * 根据输入分面信息，得到其子分面的信息
-     *
-     * @param facetSimple
-     * @param facetRelationList
-     * @return
+     * @param facetSimple 简单分面
+     * @param facetRelationList 分面关系列表
+     * @return 子分面列表
      */
     public static List<FacetSimple> getChildFacet(FacetSimple facetSimple, List<FacetRelation> facetRelationList) {
         List<FacetSimple> facetSimpleList = new ArrayList<FacetSimple>();
         String facetName = facetSimple.getFacetName();
-
         for (int i = 0; i < facetRelationList.size(); i++) {
             /**
              * 遍历关系表格中的每条关系
@@ -145,7 +113,6 @@ public class FacetDAO {
                 facetSimpleList.add(childFacet);
             }
         }
-
         return facetSimpleList;
     }
 

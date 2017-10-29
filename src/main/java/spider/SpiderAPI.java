@@ -36,21 +36,15 @@ import utils.mysqlUtils;
 import app.Config;
 import app.error;
 import app.success;
-import domainTopic.DomainTopicOldDAO;
+import domainTopic.DomainTopicDAO;
 
 /**
  * 碎片化知识采集
- *
  * @author 郑元浩
  */
 @Path("/SpiderAPI")
 @Api(value = "SpiderAPI")
 public class SpiderAPI {
-
-    public static void main(String[] args) {
-
-    }
-
 
     @GET
     @Path("/getFragmentByTopicArray")
@@ -294,7 +288,7 @@ public class SpiderAPI {
         /**
          * 统计每个主题的文本碎片数量
          */
-        List<String> topicList = DomainTopicOldDAO.getDomainTopicList(className);
+        List<String> topicList = DomainTopicDAO.getDomainTopicList(className);
         for (int i = 0; i < topicList.size(); i++) {
             String topicName = topicList.get(i);
             /**

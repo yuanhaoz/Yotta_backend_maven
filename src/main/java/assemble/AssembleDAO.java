@@ -9,11 +9,7 @@ import app.Config;
 import assemble.bean.Leaf;
 
 /**
- * 装配基本函数
- * 1. 按照主题分面返回碎片集合作为实例化主题分面树的树叶
- * 2. 按照主题分面返回文本集合作为实例化主题分面树的树叶 （不再使用）
- * 3. 按照主题分面返回图片集合作为实例化主题分面树的树叶 （不再使用）
- *
+ * 碎片装配
  * @author 郑元浩
  * @date 2016年12月5日
  */
@@ -21,15 +17,13 @@ public class AssembleDAO {
 
     /**
      * 读取指定领域名、主题名、分面名下的碎片集合作为实例化主题分面树的树叶
-     *
-     * @param className
-     * @param topicName
-     * @param facetName
-     * @return
+     * @param className 课程名
+     * @param topicName 主题名
+     * @param facetName 分面名
+     * @return 主题分面树数据
      */
     public static List<Leaf> getFragmentByFacet(String className, String topicName, String facetName) {
         List<Leaf> leafList = new ArrayList<Leaf>();
-
         /**
          * 读取assemble_fragment，获得知识点某分面下的文本碎片
          */
@@ -62,15 +56,13 @@ public class AssembleDAO {
 
     /**
      * 读取指定领域名、主题名、分面名下的文本碎片集合作为实例化主题分面树的树叶
-     *
-     * @param className
-     * @param topicName
-     * @param facetName
-     * @return
+     * @param className 课程名
+     * @param topicName 主题名
+     * @param facetName 分面名
+     * @return 主题分面树数据
      */
     public static List<Leaf> getTextByFacet(String className, String topicName, String facetName) {
         List<Leaf> leafList = new ArrayList<Leaf>();
-
         /**
          * 读取assemble_text，获得知识点某分面下的文本碎片
          */
@@ -103,11 +95,10 @@ public class AssembleDAO {
 
     /**
      * 读取指定领域名、主题名、分面名下的图片碎片集合作为实例化主题分面树的树叶
-     *
-     * @param className
-     * @param topicName
-     * @param facetName
-     * @return
+     * @param className 课程名
+     * @param topicName 主题名
+     * @param facetName 分面名
+     * @return 主题分面树数据
      */
     public static List<Leaf> getImageByFacet(String className, String topicName, String facetName) {
         List<Leaf> leafList = new ArrayList<Leaf>();

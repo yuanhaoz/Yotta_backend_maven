@@ -1,8 +1,7 @@
 package dependency.ranktext;
 
 /**
- * 类说明
- *
+ * 主题碎片类：用于计算认知关系
  * @author 郑元浩
  * @date 2017年10月18日 下午7:43:47
  */
@@ -12,7 +11,6 @@ public class Term {
     private String termName;
 
     private String termText;
-
 
     public int getTermID() {
         return termID;
@@ -35,6 +33,25 @@ public class Term {
     }
 
     public void setTermText(String termText) {
+        this.termText = termText;
+    }
+
+    @Override
+    public String toString() {
+        return "Term{" +
+                "termID=" + termID +
+                ", termName='" + termName + '\'' +
+                ", termText='" + termText + '\'' +
+                '}';
+    }
+
+    public Term() {
+    }
+
+    public Term(int termID, String termName, String termText) {
+
+        this.termID = termID;
+        this.termName = termName;
         this.termText = termText;
     }
 }

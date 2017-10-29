@@ -2,7 +2,6 @@ package domainTopic.bean;
 
 /**
  * 主题
- *
  * @author 郑元浩
  * @date 2016年11月28日
  */
@@ -36,11 +35,6 @@ public class DomainTopic {
         this.termLayer = termLayer;
     }
 
-    /**
-     * @param termName
-     * @param termUrl
-     * @param termLayer
-     */
     public DomainTopic(String termName, String termUrl, int termLayer) {
         super();
         this.termName = termName;
@@ -48,5 +42,15 @@ public class DomainTopic {
         this.termLayer = termLayer;
     }
 
+    @Override
+    public String toString() {
+        return "DomainTopic{" +
+                "termName='" + termName + '\'' +
+                ", termUrl='" + termUrl + '\'' +
+                ", termLayer=" + termLayer +
+                '}';
+    }
 
+    public DomainTopic() {
+    }
 }

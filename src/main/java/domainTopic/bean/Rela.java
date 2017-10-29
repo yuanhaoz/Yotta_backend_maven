@@ -2,7 +2,6 @@ package domainTopic.bean;
 
 /**
  * 存在上下位关系的两个主题
- *
  * @author 郑元浩
  * @date 2016年12月20日
  */
@@ -27,15 +26,20 @@ public class Rela {
         this.child = child;
     }
 
-    /**
-     * @param parent
-     * @param child
-     */
     public Rela(String parent, String child) {
         super();
         this.parent = parent;
         this.child = child;
     }
 
+    public Rela() {
+    }
 
+    @Override
+    public String toString() {
+        return "Rela{" +
+                "parent='" + parent + '\'' +
+                ", child='" + child + '\'' +
+                '}';
+    }
 }

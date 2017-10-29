@@ -28,16 +28,11 @@ import domainTopic.bean.Topic;
 
 /**
  * 领域术语抽取
- *
  * @author 郑元浩
  */
 @Path("/DomainTopicAPI")
 @Api(value = "DomainTopicAPI")
 public class DomainTopicAPI {
-
-    public static void main(String[] args) {
-
-    }
 
     @GET
     @Path("/getDomainTopicAll")
@@ -81,9 +76,8 @@ public class DomainTopicAPI {
             @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className,
             @DefaultValue("数据结构") @ApiParam(value = "术语名", required = true) @QueryParam("initTopic") String initTopic) {
 
-        Topic topicAll = DomainTopicOldDAO.getRelationAll(className, initTopic);
+        Topic topicAll = DomainTopicDAO.getRelationAll(className, initTopic);
         Response response = Response.status(200).entity(topicAll).build();
-
         return response;
     }
 
@@ -96,7 +90,6 @@ public class DomainTopicAPI {
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
     public static Response createClass(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName, @ApiParam(value = "主题名字", required = true) @QueryParam("TopicName") String TopicName) {
-//		Response response = null;
         /**
          * 在选定的课程下添加新的主题
          */
@@ -129,8 +122,6 @@ public class DomainTopicAPI {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-
-
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -150,7 +141,6 @@ public class DomainTopicAPI {
         } catch (Exception e) {
             return Response.status(402).entity(new error(e.toString())).build();
         }
-
     }
 
     @GET

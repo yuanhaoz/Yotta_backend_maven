@@ -27,20 +27,15 @@ import assemble.bean.BranchComplex;
 import assemble.bean.BranchSimple;
 import assemble.bean.Leaf;
 import assemble.bean.Tree;
-import domainTopic.DomainTopicOldDAO;
+import domainTopic.DomainTopicDAO;
 
 /**
  * 碎片装配
- *
  * @author 郑元浩
  */
 @Path("/AssembleAPI")
 @Api(value = "AssembleAPI")
 public class AssembleAPI {
-
-    public static void main(String[] args) {
-
-    }
 
     @GET
     @Path("/getTreeByTopicForFragment")
@@ -54,7 +49,6 @@ public class AssembleAPI {
     public static Response getTreeByTopicForFragment(
             @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className,
             @DefaultValue("抽象资料型别") @ApiParam(value = "主题名", required = true) @QueryParam("TermName") String topicName) {
-
         Response response = null;
         /**
          * 返回该主题一级/二级分面信息
@@ -62,18 +56,15 @@ public class AssembleAPI {
         List<FacetSimple> facetSimpleList1 = FacetDAO.getFacet(className, topicName, 1);
         List<FacetRelation> facetRelationList = FacetDAO.getFacetRelation(className, topicName, 1, 2);
         List<FacetRelation> facetRelationList2 = FacetDAO.getFacetRelation(className, topicName, 2, 3);
-
-
         /**
          * 一个主题返回一个实例化主题分面树
          */
         Tree tree = new Tree();
         int totalbranchlevel = 2;
         int branchnum = facetSimpleList1.size();
-        int term_id = DomainTopicOldDAO.getDomainTopic(className, topicName);
+        int term_id = DomainTopicDAO.getDomainTopic(className, topicName);
         String name = topicName;
         List<Branch> children = new ArrayList<Branch>();
-
         /**
          * 得到主题分面树每个一级分枝上的数据
          */
@@ -83,12 +74,10 @@ public class AssembleAPI {
              */
             FacetSimple facetSimple = facetSimpleList1.get(i);
             List<FacetSimple> secondFacetList = FacetDAO.getChildFacet(facetSimple, facetRelationList);
-
             /**
              * 判断是否存在二级分面
              */
             if (secondFacetList.size() == 0) {
-
                 /**
                  * 不存在二级分面，使用BranchSimple继承Branch
                  */
@@ -103,9 +92,7 @@ public class AssembleAPI {
                 int totalleafnum = leafFragmentList.size();
                 BranchSimple branchSimple = new BranchSimple(totalbranchlevel2, facet_name, totalbranchnum, type, leafFragmentList, totalleafnum);
                 children.add(branchSimple);
-
             } else {
-
                 /**
                  * 存在二级分面，使用BranchComplex继承Branch
                  */
@@ -113,24 +100,20 @@ public class AssembleAPI {
                 String facet_name = facetSimple.getFacetName();
                 int totalbranchnum = secondFacetList.size();
                 String type = "branch";
-
                 /**
                  * 设置二级分枝的子分枝
                  */
                 List<BranchSimple> branchSimpleList = new ArrayList<BranchSimple>();
                 for (int j = 0; j < secondFacetList.size(); j++) {
-
                     /**
                      * 遍历每一个二级分面，设置每个二级分面的
                      */
                     FacetSimple secondFacet = secondFacetList.get(j);
                     List<FacetSimple> thirdFacetList = FacetDAO.getChildFacet(secondFacet, facetRelationList2);
-
                     /**
                      * 判断是否存在三级分面
                      */
                     if (thirdFacetList.size() == 0) {
-
                         /**
                          * 不存在三级分面，将BranchSimple添加到对应的父亲branchSimpleList中，文本碎片
                          */
@@ -145,7 +128,6 @@ public class AssembleAPI {
                         int totalleafnum = leafFragmentList.size();
                         BranchSimple branchSimple = new BranchSimple(totalbranchlevel3, secondFacetName, totalbranchnum3, type3, leafFragmentList, totalleafnum);
                         branchSimpleList.add(branchSimple);
-
                     } else {
                         Log.log(className + "--->" + topicName + "--->" + secondFacet.getFacetName() + ", 该二级分面存在三级分面，三级分面待开发");
                         /**
@@ -155,7 +137,6 @@ public class AssembleAPI {
                         for (int k = 0; k < thirdFacetList.size(); k++) {
                             FacetSimple thirdFacet = thirdFacetList.get(k);
                             String thirdFacetName = thirdFacet.getFacetName();
-
                             /**
                              * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
                              */
@@ -178,9 +159,7 @@ public class AssembleAPI {
                 BranchComplex branchComplex = new BranchComplex(totalbranchlevel2, facet_name, totalbranchnum, type, branchSimpleList, totalleafnum);
                 children.add(branchComplex);
             }
-
         }
-
         /**
          * 设置实例化分面树的值
          */
@@ -189,7 +168,6 @@ public class AssembleAPI {
         tree.setTerm_id(term_id);
         tree.setName(name);
         tree.setChildren(children);
-
         /**
          * 返回实例化分面树数据
          */
@@ -209,7 +187,6 @@ public class AssembleAPI {
     public static Response getTreeByTopic(
             @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className,
             @DefaultValue("抽象资料型别") @ApiParam(value = "主题名", required = true) @QueryParam("TermName") String topicName) {
-
         Response response = null;
         /**
          * 返回该主题一级/二级分面信息
@@ -217,18 +194,15 @@ public class AssembleAPI {
         List<FacetSimple> facetSimpleList1 = FacetDAO.getFacet(className, topicName, 1);
         List<FacetRelation> facetRelationList = FacetDAO.getFacetRelation(className, topicName, 1, 2);
         List<FacetRelation> facetRelationList2 = FacetDAO.getFacetRelation(className, topicName, 2, 3);
-
-
         /**
          * 一个主题返回一个实例化主题分面树
          */
         Tree tree = new Tree();
         int totalbranchlevel = 2;
         int branchnum = facetSimpleList1.size();
-        int term_id = DomainTopicOldDAO.getDomainTopic(className, topicName);
+        int term_id = DomainTopicDAO.getDomainTopic(className, topicName);
         String name = topicName;
         List<Branch> children = new ArrayList<Branch>();
-
         /**
          * 得到主题分面树每个一级分枝上的数据
          */
@@ -238,12 +212,10 @@ public class AssembleAPI {
              */
             FacetSimple facetSimple = facetSimpleList1.get(i);
             List<FacetSimple> secondFacetList = FacetDAO.getChildFacet(facetSimple, facetRelationList);
-
             /**
              * 判断是否存在二级分面
              */
             if (secondFacetList.size() == 0) {
-
                 /**
                  * 不存在二级分面，使用BranchSimple继承Branch
                  */
@@ -262,9 +234,7 @@ public class AssembleAPI {
                 int totalleafnum = leafList.size();
                 BranchSimple branchSimple = new BranchSimple(totalbranchlevel2, facet_name, totalbranchnum, type, leafList, totalleafnum);
                 children.add(branchSimple);
-
             } else {
-
                 /**
                  * 存在二级分面，使用BranchComplex继承Branch
                  */
@@ -272,24 +242,20 @@ public class AssembleAPI {
                 String facet_name = facetSimple.getFacetName();
                 int totalbranchnum = secondFacetList.size();
                 String type = "branch";
-
                 /**
                  * 设置二级分枝的子分枝
                  */
                 List<BranchSimple> branchSimpleList = new ArrayList<BranchSimple>();
                 for (int j = 0; j < secondFacetList.size(); j++) {
-
                     /**
                      * 遍历每一个二级分面，设置每个二级分面的
                      */
                     FacetSimple secondFacet = secondFacetList.get(j);
                     List<FacetSimple> thirdFacetList = FacetDAO.getChildFacet(secondFacet, facetRelationList2);
-
                     /**
                      * 判断是否存在三级分面
                      */
                     if (thirdFacetList.size() == 0) {
-
                         /**
                          * 不存在三级分面，将BranchSimple添加到对应的父亲branchSimpleList中，文本碎片
                          */
@@ -308,7 +274,6 @@ public class AssembleAPI {
                         int totalleafnum = leafList.size();
                         BranchSimple branchSimple = new BranchSimple(totalbranchlevel3, secondFacetName, totalbranchnum3, type3, leafList, totalleafnum);
                         branchSimpleList.add(branchSimple);
-
                     } else {
                         Log.log(className + "--->" + topicName + "--->" + secondFacet.getFacetName() + ", 该二级分面存在三级分面，三级分面待开发");
                         /**
@@ -318,7 +283,6 @@ public class AssembleAPI {
                         for (int k = 0; k < thirdFacetList.size(); k++) {
                             FacetSimple thirdFacet = thirdFacetList.get(k);
                             String thirdFacetName = thirdFacet.getFacetName();
-
                             /**
                              * 树叶同时包含：文本碎片 + 图片碎片
                              */
@@ -326,7 +290,6 @@ public class AssembleAPI {
                             List<Leaf> leafImageList = AssembleDAO.getImageByFacet(className, topicName, thirdFacetName);
                             leafAllList.addAll(leafTextList);
                             leafAllList.addAll(leafImageList);
-
                         }
                         int totalbranchlevel3 = 0;
                         String secondFacetName = secondFacet.getFacetName();
@@ -344,9 +307,7 @@ public class AssembleAPI {
                 BranchComplex branchComplex = new BranchComplex(totalbranchlevel2, facet_name, totalbranchnum, type, branchSimpleList, totalleafnum);
                 children.add(branchComplex);
             }
-
         }
-
         /**
          * 设置实例化分面树的值
          */
@@ -355,13 +316,11 @@ public class AssembleAPI {
         tree.setTerm_id(term_id);
         tree.setName(name);
         tree.setChildren(children);
-
         /**
          * 返回实例化分面树数据
          */
         response = Response.status(200).entity(tree).build();
         return response;
     }
-
 
 }

@@ -4,7 +4,6 @@ package facet.bean;
  * 简单的分面对象
  * 1. 分面名
  * 2. 分面级数
- *
  * @author 郑元浩
  * @date 2016年11月29日
  */
@@ -29,14 +28,20 @@ public class FacetSimple {
         this.facetLayer = facetLayer;
     }
 
-    /**
-     * @param facetName
-     * @param facetLayer
-     */
     public FacetSimple(String facetName, int facetLayer) {
         super();
         this.facetName = facetName;
         this.facetLayer = facetLayer;
     }
 
+    @Override
+    public String toString() {
+        return "FacetSimple{" +
+                "facetName='" + facetName + '\'' +
+                ", facetLayer=" + facetLayer +
+                '}';
+    }
+
+    public FacetSimple() {
+    }
 }

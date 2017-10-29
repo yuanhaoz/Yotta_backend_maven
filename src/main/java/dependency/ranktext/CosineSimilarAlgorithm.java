@@ -1,7 +1,6 @@
 package dependency.ranktext;
 /**
- * 类说明
- *
+ * 计算文档相似度
  * @author 郑元浩
  * @date 2017年10月18日 下午7:42:40
  */
@@ -12,12 +11,16 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class CosineSimilarAlgorithm {
+
+    /**
+     * 计算两个文档的相似度
+     * @param doc1 文档1
+     * @param doc2 文档2
+     * @return 文档相似度
+     */
     public static double getSimilarity(String doc1, String doc2) {
-        if (doc1 != null && doc1.trim().length() > 0 && doc2 != null
-                && doc2.trim().length() > 0) {
-
-            Map<Integer, int[]> AlgorithmMap = new HashMap<Integer, int[]>();
-
+        if (doc1 != null && doc1.trim().length() > 0 && doc2 != null && doc2.trim().length() > 0) {
+            Map<Integer, int[]> AlgorithmMap = new HashMap<>();
             //将两个字符串中的中文字符以及出现的总数封装到，AlgorithmMap中
             for (int i = 0; i < doc1.length(); i++) {
                 char d1 = doc1.charAt(i);
@@ -36,7 +39,6 @@ public class CosineSimilarAlgorithm {
                     }
                 }
             }
-
             for (int i = 0; i < doc2.length(); i++) {
                 char d2 = doc2.charAt(i);
                 if (isHanZi(d2)) {
@@ -54,7 +56,6 @@ public class CosineSimilarAlgorithm {
                     }
                 }
             }
-
             Iterator<Integer> iterator = AlgorithmMap.keySet().iterator();
             double sqdoc1 = 0;
             double sqdoc2 = 0;
@@ -65,23 +66,24 @@ public class CosineSimilarAlgorithm {
                 sqdoc1 += c[0] * c[0];
                 sqdoc2 += c[1] * c[1];
             }
-
             return denominator / Math.sqrt(sqdoc1 * sqdoc2);
         } else {
-            throw new NullPointerException(
-                    " the Document is null or have not cahrs!!");
+            return 0;
         }
     }
 
+    /**
+     * 判断字符是否是汉字
+     * @param ch 字符
+     * @return 是否是字符的判断，true表示是
+     */
     public static boolean isHanZi(char ch) {
         // 判断是否汉字
         return (ch >= 0x4E00 && ch <= 0x9FA5);
-
     }
 
     /**
      * 根据输入的Unicode字符，获取它的GB2312编码或者ascii编码，
-     *
      * @param ch 输入的GB2312中文字符或者ASCII字符(128个)
      * @return ch在GB2312中的位置，-1表示该字符不认识
      */

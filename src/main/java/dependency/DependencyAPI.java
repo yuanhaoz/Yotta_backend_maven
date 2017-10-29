@@ -30,19 +30,11 @@ import app.success;
 
 /**
  * 知识关联挖掘：主题间认知关系
- *
  * @author 郑元浩
  */
-
 @Path("/DependencyAPI")
 @Api(value = "DependencyAPI")
 public class DependencyAPI {
-
-    public static void main(String[] args) {
-        Response response = getDependencyByDomain("数据结构");
-        Log.log(response.getEntity());
-    }
-
 
     @GET
     @Path("/getDependencyByDomain")
@@ -55,21 +47,15 @@ public class DependencyAPI {
     public static Response getDependencyByDomain(
             @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className) {
         Response response = null;
-//		List<Dependency> dependencyList = new ArrayList<Dependency>();
-
         /**
          * 读取dependency，获得认知关系
          */
         mysqlUtils mysql = new mysqlUtils();
-        String sql = "select * from " + Config.DEPENDENCY + " where ClassName=?";
+        String sql = "select * from " + Config.DEPENDENCY + " where ClassName = ?";
         List<Object> params = new ArrayList<Object>();
         params.add(className);
         try {
             List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
-//			if (results.size() == 0) { // 没有获取到主题间的认知关系
-//				generateDependenceByClassName(className); // 生成主题间的认知关系
-            results = mysql.returnMultipleResult(sql, params);
-//			}
             response = Response.status(200).entity(results).build();
         } catch (Exception e) {
             e.printStackTrace();
@@ -108,7 +94,6 @@ public class DependencyAPI {
         return response;
     }
 
-
     @GET
     @Path("/getDomainTerm")
     @ApiOperation(value = "获得指定领域下的主题", notes = "获得指定领域下所有主题")
@@ -123,7 +108,7 @@ public class DependencyAPI {
          * 根据指定领域，获得领域下所有主题
          */
         mysqlUtils mysql = new mysqlUtils();
-        String sql = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName=?";
+        String sql = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName = ?";
         List<Object> params = new ArrayList<Object>();
         params.add(ClassName);
         try {
@@ -138,7 +123,6 @@ public class DependencyAPI {
         return response;
     }
 
-
     @GET
     @Path("/createDependence")
     @ApiOperation(value = "创建一个认知关系", notes = "在选定的课程下创建一个认知关系")
@@ -151,20 +135,19 @@ public class DependencyAPI {
             @ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName,
             @ApiParam(value = "StartName", required = true) @QueryParam("StartName") String StartName,
             @ApiParam(value = "EndName", required = true) @QueryParam("EndName") String EndName) {
-//		Response response = null;
         /**
          * 在选定的课程下创建一个认知关系
          */
         try {
             boolean result = false;
             mysqlUtils mysql = new mysqlUtils();
-            String sql = "insert into " + Config.DEPENDENCY + "(ClassName,Start,StartID,End,EndID) values(?,?,?,?,?);";
-            String sql_queryTermID = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName=? and TermName=?";
-            String sql_queryDependency = "select * from " + Config.DEPENDENCY + " where ClassName=? and Start=? and End=?";
+            String sql = "insert into " + Config.DEPENDENCY + "(ClassName, Start, StartID, End, EndID) values(?, ?, ?, ?, ?);";
+            String sql_queryTermID = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName = ? and TermName = ?";
+            String sql_queryDependency = "select * from " + Config.DEPENDENCY + " where ClassName = ? and Start = ? and End = ?";
             List<Object> params_queryTermID1 = new ArrayList<Object>();
-            List<Object> params_queryTermID2 = new ArrayList<Object>();
             params_queryTermID1.add(ClassName);
             params_queryTermID1.add(StartName);
+            List<Object> params_queryTermID2 = new ArrayList<Object>();
             params_queryTermID2.add(ClassName);
             params_queryTermID2.add(EndName);
             List<Object> params_queryDependency = new ArrayList<Object>();
@@ -175,12 +158,11 @@ public class DependencyAPI {
             params.add(ClassName);
 
             // 将认知路径写到上下位关系中
-            String sqlDomainTopicRelationQuery = "select * from " + Config.DOMAIN_TOPIC_RELATION_TABLE + " where ClassName=? and Child=?";
+            String sqlDomainTopicRelationQuery = "select * from " + Config.DOMAIN_TOPIC_RELATION_TABLE + " where ClassName = ? and Child = ?";
             List<Object> paramsDomainTopicRelationQuery = new ArrayList<Object>();
             paramsDomainTopicRelationQuery.add(ClassName);
-            String sqlDomainTopicRelation = "insert into " + Config.DOMAIN_TOPIC_RELATION_TABLE + "(Parent, Child, ClassName) values(?,?,?);";
+            String sqlDomainTopicRelation = "insert into " + Config.DOMAIN_TOPIC_RELATION_TABLE + "(Parent, Child, ClassName) values(?, ?, ?);";
             List<Object> paramsDomainTopicRelation = new ArrayList<Object>();
-
             try {
                 List<Map<String, Object>> results_queryDepencency = mysql.returnMultipleResult(sql_queryDependency, params_queryDependency);
                 if (results_queryDepencency.size() == 0) {
@@ -192,7 +174,6 @@ public class DependencyAPI {
                             params.add(results_queryTermID1.get(0).get("TermID").toString());
                             params.add(EndName);
                             params.add(results_queryTermID2.get(0).get("TermID").toString());
-
                             // 将认知路径写到上下位关系中
                             paramsDomainTopicRelation.add(StartName);
                             paramsDomainTopicRelation.add(EndName);
@@ -234,9 +215,7 @@ public class DependencyAPI {
         } catch (Exception e) {
             return Response.status(402).entity(new error(e.toString())).build();
         }
-
     }
-
 
     @GET
     @Path("/deleteDependence")
@@ -250,7 +229,6 @@ public class DependencyAPI {
             @ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName,
             @ApiParam(value = "StartID", required = true) @QueryParam("StartID") String StartID,
             @ApiParam(value = "EndID", required = true) @QueryParam("EndID") String EndID) {
-//		Response response = null;
         /**
          * 在选定的课程下删除一个认知关系
          */
@@ -296,7 +274,6 @@ public class DependencyAPI {
         }
     }
 
-
     @GET
     @Path("/getDependenceByKeyword")
     @ApiOperation(value = "根据关键词查询认知关系", notes = "根据关键词查询认知关系")
@@ -328,7 +305,6 @@ public class DependencyAPI {
         return response;
     }
 
-
     @GET
     @Path("/generateDependenceByClassName")
     @ApiOperation(value = "根据领域名生成认知关系", notes = "根据领域名生成认知关系")
@@ -340,13 +316,12 @@ public class DependencyAPI {
     public static Response generateDependenceByClassName(
             @ApiParam(value = "农业史", required = true) @QueryParam("ClassName") String ClassName) {
         Response response = null;
-
         List<Term> termList = new ArrayList<Term>();
         /**
          * 根据指定领域，查询主题表，获得领域下所有主题
          */
         mysqlUtils mysql = new mysqlUtils();
-        String sql = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName=?";
+        String sql = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName = ?";
         List<Object> params = new ArrayList<Object>();
         params.add(ClassName);
         try {

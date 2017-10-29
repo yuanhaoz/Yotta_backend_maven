@@ -2,7 +2,6 @@ package dependency.bean;
 
 /**
  * 认知关系
- *
  * @author 郑元浩
  * @date 2016年12月5日
  */
@@ -63,14 +62,6 @@ public class Dependency {
         this.confidence = confidence;
     }
 
-    /**
-     * @param className
-     * @param start
-     * @param startID
-     * @param end
-     * @param endID
-     * @param confidence
-     */
     public Dependency(String className, String start, int startID, String end,
                       int endID, String confidence) {
         super();
@@ -82,9 +73,6 @@ public class Dependency {
         this.confidence = confidence;
     }
 
-    /**
-     *
-     */
     public Dependency() {
         super();
         // TODO Auto-generated constructor stub

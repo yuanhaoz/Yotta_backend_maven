@@ -10,11 +10,9 @@ import java.util.List;
  * 4. type: 分枝（分面）默认都为"branch"
  * 5. children: 子分枝元素集合
  * 6. totalleafnum: 子分枝元素数量
- * <p>
  * 多余：
  * branchnum: 值为totalbranchnum相同，因此删除
  * facet_id: 没有用到，可以删除
- *
  * @author 郑元浩
  * @date 2016年12月4日
  */
@@ -22,14 +20,6 @@ public class BranchComplex extends Branch {
 
     public List<BranchSimple> children;
 
-    /**
-     * @param totalbranchlevel
-     * @param facet_name
-     * @param totalbranchnum
-     * @param type
-     * @param children
-     * @param totalleafnum
-     */
     public BranchComplex(int totalbranchlevel, String facet_name,
                          int totalbranchnum, String type, List<BranchSimple> children,
                          int totalleafnum) {
@@ -40,6 +30,18 @@ public class BranchComplex extends Branch {
         this.type = type;
         this.children = children;
         this.totalleafnum = totalleafnum;
+    }
+
+    @Override
+    public String toString() {
+        return "BranchComplex{" +
+                "totalbranchlevel=" + totalbranchlevel +
+                ", facet_name='" + facet_name + '\'' +
+                ", totalbranchnum=" + totalbranchnum +
+                ", type='" + type + '\'' +
+                ", children=" + children +
+                ", totalleafnum=" + totalleafnum +
+                '}';
     }
 
 }
