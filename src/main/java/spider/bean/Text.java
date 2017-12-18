@@ -1,8 +1,9 @@
 package spider.bean;
 
 /**
- * 文本碎片类
- * @author 郑元浩
+ * 文本碎片类   
+ *
+ * @author 郑元浩 
  * @date 2016年11月6日
  */
 public class Text {
@@ -80,6 +81,16 @@ public class Text {
         this.className = className;
     }
 
+    /**
+     * @param fragmentID
+     * @param fragmentContent
+     * @param fragmentUrl
+     * @param fragmentPostTime
+     * @param fragmentScratchTime
+     * @param termID
+     * @param termName
+     * @param className
+     */
     public Text(int fragmentID, String fragmentContent, String fragmentUrl,
                 String fragmentPostTime, String fragmentScratchTime, int termID,
                 String termName, String className) {
@@ -94,21 +105,13 @@ public class Text {
         this.className = className;
     }
 
+    /**
+     *
+     */
     public Text() {
         super();
+        // TODO Auto-generated constructor stub
     }
 
-    @Override
-    public String toString() {
-        return "Text{" +
-                "fragmentID=" + fragmentID +
-                ", fragmentContent='" + fragmentContent + '\'' +
-                ", fragmentUrl='" + fragmentUrl + '\'' +
-                ", fragmentPostTime='" + fragmentPostTime + '\'' +
-                ", fragmentScratchTime='" + fragmentScratchTime + '\'' +
-                ", termID=" + termID +
-                ", termName='" + termName + '\'' +
-                ", className='" + className + '\'' +
-                '}';
-    }
+
 }

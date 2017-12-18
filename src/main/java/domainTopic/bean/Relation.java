@@ -3,8 +3,9 @@ package domainTopic.bean;
 import java.util.List;
 
 /**
- * 存储主题之间的上下位关系: 子节点是主题元素
- * @author 郑元浩
+ * 存储主题之间的上下位关系: 子节点是主题元素   
+ *
+ * @author 郑元浩 
  * @date 2016年12月20日
  */
 public class Relation {
@@ -37,6 +38,11 @@ public class Relation {
         this.topicList = topicList;
     }
 
+    /**
+     * @param topicID
+     * @param topicName
+     * @param topicList
+     */
     public Relation(int topicID, String topicName, List<Topic> topicList) {
         super();
         this.topicID = topicID;
@@ -44,15 +50,5 @@ public class Relation {
         this.topicList = topicList;
     }
 
-    @Override
-    public String toString() {
-        return "Relation{" +
-                "topicID=" + topicID +
-                ", topicName='" + topicName + '\'' +
-                ", topicList=" + topicList +
-                '}';
-    }
 
-    public Relation() {
-    }
 }

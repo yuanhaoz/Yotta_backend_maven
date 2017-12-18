@@ -1,9 +1,10 @@
 package dependency.ranktext;
 
 /**
- * 主题认知关系类
+ * 类说明   
+ *
  * @author 郑元浩
- * @date 2017年10月18日 下午7:44:08
+ * @date 2017年10月18日 下午7:44:08 
  */
 public class TwoTuple<A, B> {
     public final A first;

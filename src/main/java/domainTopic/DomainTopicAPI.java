@@ -1,38 +1,31 @@
 package domainTopic;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import app.Config;
+import app.error;
+import app.success;
+import domainTopic.bean.Topic;
+import io.swagger.annotations.*;
+import utils.mysqlUtils;
 
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
-import utils.mysqlUtils;
-import app.Config;
-import app.error;
-import app.success;
-import domainTopic.bean.Topic;
-
-/**
+/**  
  * 领域术语抽取
- * @author 郑元浩
+ * @author 郑元浩 
  */
 @Path("/DomainTopicAPI")
 @Api(value = "DomainTopicAPI")
 public class DomainTopicAPI {
+
+    public static void main(String[] args) {
+
+    }
 
     @GET
     @Path("/getDomainTopicAll")
@@ -78,6 +71,7 @@ public class DomainTopicAPI {
 
         Topic topicAll = DomainTopicDAO.getRelationAll(className, initTopic);
         Response response = Response.status(200).entity(topicAll).build();
+
         return response;
     }
 
@@ -90,6 +84,7 @@ public class DomainTopicAPI {
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
     public static Response createClass(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName, @ApiParam(value = "主题名字", required = true) @QueryParam("TopicName") String TopicName) {
+//		Response response = null;
         /**
          * 在选定的课程下添加新的主题
          */
@@ -122,6 +117,8 @@ public class DomainTopicAPI {
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
+
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -141,6 +138,7 @@ public class DomainTopicAPI {
         } catch (Exception e) {
             return Response.status(402).entity(new error(e.toString())).build();
         }
+
     }
 
     @GET

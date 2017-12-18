@@ -1,13 +1,13 @@
 package dependency.ranktext;
 /**
- * 计算主题间的认知关系
+ * 类说明   
+ *
  * @author 郑元浩
- * @date 2017年10月18日 下午7:43:11
+ * @date 2017年10月18日 下午7:43:11 
  */
 
-import org.slf4j.LoggerFactory;
-
 import dependency.bean.Dependency;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -24,6 +24,7 @@ public class RankText {
      */
     public List<Dependency> rankText(List<Term> termList, String ClassName, int MAX) {
         List<Dependency> dependencies = new ArrayList<>();
+
         logger.info("Finish Hash...");
         logger.info("Start computing the hammingDistance...");
         HashMap<TwoTuple<Term, Term>, Double> disMap = new HashMap<>();
@@ -32,6 +33,7 @@ public class RankText {
                 Term term1 = termList.get(i);
                 Term term2 = termList.get(j);
                 double dis = CosineSimilarAlgorithm.getSimilarity(term1.getTermText(), term2.getTermText());
+//				logger.info(dis+"");
                 TwoTuple<Term, Term> twoTuple = new TwoTuple<>(term1, term2);
                 disMap.put(twoTuple, dis);
             }
@@ -43,6 +45,7 @@ public class RankText {
         Collections.sort(infoIds, (o1, o2) -> o2.getValue().compareTo(o1.getValue()));
         logger.info("Finish ranking!");
         logger.info("Start printing...");
+
 
         int end = MAX;
         if (infoIds.size() < end) end = infoIds.size();
@@ -66,5 +69,6 @@ public class RankText {
         }
         logger.info("Finish printing...");
         return dependencies;
+
     }
 }

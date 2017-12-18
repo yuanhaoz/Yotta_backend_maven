@@ -1,27 +1,36 @@
 package domainTopic;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
+import app.Config;
+import domainTopic.bean.DomainTopic;
 import domainTopic.bean.Rela;
 import domainTopic.bean.Topic;
 import utils.Log;
 import utils.mysqlUtils;
-import app.Config;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
- * 领域主题操作类
- * @author 郑元浩
+ * 类说明   
+ *
+ * @author 郑元浩 
  * @date 2016年12月5日
  */
 public class DomainTopicDAO {
 
+    public static void main(String[] args) {
+//		Log.log(getDomainTopic("数据结构", "八叉树"));
+        modifyTopic("数据结构", 1, new DomainTopic("抽象资料型别", "https://zh.wikipedia.org/wiki/%E6%8A%BD%E8%B1%A1%E8%B3%87%E6%96%99%E5%9E%8B%E5%88%A5", 1));
+        modifyTopic("数据结构", 83, new DomainTopic("树 (数据结构)", "https://zh.wikipedia.org/wiki/%E6%A0%91_(%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84)", 3));
+    }
+
     /**
      * 返回一个主题的termID
-     * @param className 课程名
-     * @param termName 主题名
-     * @return 主题ID
+     *
+     * @param className
+     * @param termName
+     * @return
      */
     public static int getDomainTopic(String className, String termName) {
         int termID = 0;
@@ -29,7 +38,7 @@ public class DomainTopicDAO {
          * 读取domain_topic，获得每一层知识主题
          */
         mysqlUtils mysql = new mysqlUtils();
-        String sql = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName = ? and TermName = ?";
+        String sql = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName=? and TermName=?";
         List<Object> params = new ArrayList<Object>();
         params.add(className);
         params.add(termName);
@@ -51,8 +60,9 @@ public class DomainTopicDAO {
 
     /**
      * 返回所有主题
-     * @param className 课程名
-     * @return 主题列表
+     *
+     * @param className
+     * @return
      */
     public static List<String> getDomainTopicList(String className) {
         List<String> topicList = new ArrayList<String>();
@@ -60,7 +70,7 @@ public class DomainTopicDAO {
          * 读取domain_topic，获得每一层知识主题
          */
         mysqlUtils mysql = new mysqlUtils();
-        String sql = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName = ?";
+        String sql = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName=?";
         List<Object> params = new ArrayList<Object>();
         params.add(className);
         try {
@@ -68,6 +78,7 @@ public class DomainTopicDAO {
             for (int i = 0; i < results.size(); i++) {
                 Map<String, Object> map = results.get(i);
                 String topic = map.get("TermName").toString();
+//				Log.log(topic);
                 topicList.add(topic);
             }
         } catch (Exception e) {
@@ -79,26 +90,59 @@ public class DomainTopicDAO {
     }
 
     /**
-     * 返回一门课程的所有主题之间的上下位关系，按照一门课的主题进行关系查询
-     * @param className 课程名
-     * @return 主题上下位关系
+     * 返回一门课程的所有领域主题及其层数
+     *
+     * @param className
+     * @return
      */
-    public static List<Rela> getRelationList(String className, String parentTopic) {
+    public static List<DomainTopic> getDomainTopics(String className) {
+        List<DomainTopic> domainTopicList = new ArrayList<DomainTopic>();
+        /**
+         * 读取domain_topic，获得每一层知识主题
+         */
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(className);
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+            for (int i = 0; i < results.size(); i++) {
+                Map<String, Object> map = results.get(i);
+                String topicName = map.get("TermName").toString();
+                String topicUrl = map.get("TermUrl").toString();
+                DomainTopic domainTopic = new DomainTopic(topicName, topicUrl);
+                domainTopicList.add(domainTopic);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            mysql.closeconnection();
+        }
+        return domainTopicList;
+    }
+
+    /**
+     * 返回一门课程的所有主题之间的上下位关系：上位主题和下位主题
+     *
+     * @param className
+     * @return
+     */
+    public static List<Rela> getRelationList(String className) {
         List<Rela> relaList = new ArrayList<Rela>();
         /**
          * 读取domain_topic，获得每一层知识主题
          */
         mysqlUtils mysql = new mysqlUtils();
-        String sql = "select * from " + Config.DOMAIN_TOPIC_RELATION_TABLE + " where ClassName = ? and Parent = ?";
+        String sql = "select * from " + Config.DOMAIN_TOPIC_RELATION_TABLE + " where ClassName=?";
         List<Object> params = new ArrayList<Object>();
         params.add(className);
-        params.add(parentTopic);
         try {
             List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
             for (int i = 0; i < results.size(); i++) {
                 Map<String, Object> map = results.get(i);
+                String parent = map.get("Parent").toString();
                 String child = map.get("Child").toString();
-                Rela topic = new Rela(parentTopic, child);
+                Rela topic = new Rela(parent, child);
                 relaList.add(topic);
             }
         } catch (Exception e) {
@@ -109,24 +153,124 @@ public class DomainTopicDAO {
         return relaList;
     }
 
+    /**
+     * 返回一门课程的所有主题之间的上下位关系，按照一门课的主题进行关系查询
+     *
+     * @param className
+     * @return
+     */
+    public static List<Rela> getRelationList(String className, String parentTopic) {
+        List<Rela> relaList = new ArrayList<Rela>();
+        /**
+         * 读取domain_topic，获得每一层知识主题
+         */
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from " + Config.DOMAIN_TOPIC_RELATION_TABLE + " where ClassName=? and Parent=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(className);
+        params.add(parentTopic);
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+            for (int i = 0; i < results.size(); i++) {
+                Map<String, Object> map = results.get(i);
+                String parent = map.get("Parent").toString();
+                String child = map.get("Child").toString();
+                Rela topic = new Rela(parent, child);
+                relaList.add(topic);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            mysql.closeconnection();
+        }
+        return relaList;
+    }
+
+    /**
+     * 返回一门课程的所有领域术语及其层数
+     *
+     * @param className
+     * @return
+     */
+    public static List<DomainTopic> getDomainTerms(String className) {
+        List<DomainTopic> domainTermList = new ArrayList<DomainTopic>();
+        /**
+         * 读取domain_term，获得每一层领域术语
+         */
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from " + Config.DOMAIN_LAYER_TABLE + " where ClassName=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(className);
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+            for (int i = 0; i < results.size(); i++) {
+                Map<String, Object> map = results.get(i);
+                String topicName = map.get("TermName").toString();
+                String topicUrl = map.get("TermUrl").toString();
+                int topicLayer = Integer.parseInt(map.get("TermLayer").toString());
+                DomainTopic domainTopic = new DomainTopic(topicName, topicUrl, topicLayer);
+                domainTermList.add(domainTopic);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            mysql.closeconnection();
+        }
+        return domainTermList;
+    }
+
+    /**
+     * 更新一门课程的某个知识主题ID对应的知识主题名
+     *
+     * @param className
+     * @param termID
+     * @param termName
+     */
+    public static void modifyTopic(String className, int termID, DomainTopic topic) {
+        /**
+         * 修改domain_topic
+         */
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "update " + Config.DOMAIN_TOPIC_TABLE + " set TermName=?,TermLayer=?,TermUrl=? where ClassName=? and TermID=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(topic.getTermName());
+        params.add(topic.getTermLayer());
+        params.add(topic.getTermUrl());
+        params.add(className);
+        params.add(termID);
+        try {
+            mysql.addDeleteModify(sql, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            mysql.closeconnection();
+        }
+    }
+
+    ///////////////66666666666666666666666666666666//////////////////////
     private static int topicNum = 0;
     private static List<Rela> relaListRec = new ArrayList<Rela>();
+
     /**
      * 递归实现获取所有主题关系数据
      * 递归很关键，很强势
-     * @param className 课程名
-     * @param topicNeed 父主题
-     * @return 该课程上下位主题关系
+     *
+     * @param className
+     * @param topicNeed
+     * @return
      */
     public static Topic getRelationAll(String className, String topicNeed) {
         /**
          * 用于存储该父亲节点的所有下位主题信息
          */
         Topic topicAll = new Topic();
+
+//		String topicNeed = "数据结构";
         Object data = "";
 //		int parentID = DomainTopicDAO.getDomainTopic(className, topicNeed); // 得到父主题ID
         int parentID = topicNum++; // 得到父主题ID
         List<Topic> childrenList = new ArrayList<Topic>();
+
         /**
          * 获取该知识主题相关的上下位关系的主题信息
          */
@@ -156,8 +300,9 @@ public class DomainTopicDAO {
                 childrenList.add(topicChild);
             }
         } else {
-			Log.log("没有下位主题");
+//			childrenList.add(null);
         }
+
         /**
          * 不存在上下位关系节点，直接保存该节点到总的信息链表中
          * 将该上下位关系保存到结果集合中
@@ -166,7 +311,9 @@ public class DomainTopicDAO {
         topicAll.setName(topicNeed);
         topicAll.setData(data);
         topicAll.setChildren(childrenList);
+
         return topicAll;
+
     }
 
 }

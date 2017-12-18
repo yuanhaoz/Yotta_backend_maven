@@ -1,8 +1,9 @@
 package facet.bean;
 
 /**
- * 存储分面之间的关系
- * @author 郑元浩
+ * 存储分面之间的关系  
+ *
+ * @author 郑元浩 
  * @date 2016年11月29日
  */
 public class FacetRelation {
@@ -45,6 +46,12 @@ public class FacetRelation {
         this.parentLayer = parentLayer;
     }
 
+    /**
+     * @param childFacet
+     * @param childLayer
+     * @param parentFacet
+     * @param parentLayer
+     */
     public FacetRelation(String childFacet, int childLayer, String parentFacet,
                          int parentLayer) {
         super();
@@ -54,16 +61,4 @@ public class FacetRelation {
         this.parentLayer = parentLayer;
     }
 
-    public FacetRelation() {
-    }
-
-    @Override
-    public String toString() {
-        return "FacetRelation{" +
-                "childFacet='" + childFacet + '\'' +
-                ", childLayer=" + childLayer +
-                ", parentFacet='" + parentFacet + '\'' +
-                ", parentLayer=" + parentLayer +
-                '}';
-    }
 }

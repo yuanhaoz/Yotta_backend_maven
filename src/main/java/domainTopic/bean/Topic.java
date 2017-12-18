@@ -3,8 +3,9 @@ package domainTopic.bean;
 import java.util.List;
 
 /**
- * 用于生成主题上下位那个图的Json所构建的基本数据结构
- * @author 郑元浩
+ * 用于生成主题上下位那个图的Json所构建的基本数据结构   
+ *
+ * @author 郑元浩 
  * @date 2016年12月20日
  */
 public class Topic {
@@ -46,6 +47,12 @@ public class Topic {
         this.children = children;
     }
 
+    /**
+     * @param id
+     * @param name
+     * @param data
+     * @param children
+     */
     public Topic(int id, String name, Object data, List<Topic> children) {
         super();
         this.id = id;
@@ -54,17 +61,13 @@ public class Topic {
         this.children = children;
     }
 
+    /**
+     *
+     */
     public Topic() {
         super();
+        // TODO Auto-generated constructor stub
     }
 
-    @Override
-    public String toString() {
-        return "Topic{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", data=" + data +
-                ", children=" + children +
-                '}';
-    }
+
 }

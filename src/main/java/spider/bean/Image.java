@@ -1,8 +1,9 @@
 package spider.bean;
 
 /**
- * 图片类
- * @author 郑元浩
+ * 图片类   
+ *
+ * @author 郑元浩 
  * @date 2016年11月6日
  */
 public class Image {
@@ -89,6 +90,17 @@ public class Image {
         this.imageScratchTime = imageScratchTime;
     }
 
+    /**
+     * @param imageID
+     * @param imageUrl
+     * @param imageWidth
+     * @param imageHeight
+     * @param termID
+     * @param termName
+     * @param termUrl
+     * @param className
+     * @param imageScratchTime
+     */
     public Image(int imageID, String imageUrl, int imageWidth, int imageHeight,
                  int termID, String termName, String termUrl, String className,
                  String imageScratchTime) {
@@ -104,23 +116,13 @@ public class Image {
         this.imageScratchTime = imageScratchTime;
     }
 
+    /**
+     *
+     */
     public Image() {
         super();
         // TODO Auto-generated constructor stub
     }
 
-    @Override
-    public String toString() {
-        return "Image{" +
-                "imageID=" + imageID +
-                ", imageUrl='" + imageUrl + '\'' +
-                ", imageWidth=" + imageWidth +
-                ", imageHeight=" + imageHeight +
-                ", termID=" + termID +
-                ", termName='" + termName + '\'' +
-                ", termUrl='" + termUrl + '\'' +
-                ", className='" + className + '\'' +
-                ", imageScratchTime='" + imageScratchTime + '\'' +
-                '}';
-    }
+
 }

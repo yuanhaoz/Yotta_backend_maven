@@ -2,7 +2,8 @@ package domain.bean;
 
 /**
  * 领域名--->课程名，用于数据库读写
- * @author 郑元浩
+ *
+ * @author 郑元浩 
  * @date 2016年11月28日
  */
 public class Domain {
@@ -36,14 +37,13 @@ public class Domain {
         this.className = className;
     }
 
-    @Override
-    public String toString() {
-        return "Domain{" +
-                "classID=" + classID +
-                ", className='" + className + '\'' +
-                '}';
+    /**
+     *
+     */
+    public Domain() {
+        super();
+        // TODO Auto-generated constructor stub
     }
 
-    public Domain() {
-    }
+
 }

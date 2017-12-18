@@ -3,42 +3,42 @@ package utils;
 import java.util.List;
 
 /**
- * 类说明
+ * 类说明   
  *
- * @author 郑元浩
+ * @author 郑元浩 
  * @date 2016年11月14日
  */
 public class Log {
 
-    //	private final static Boolean flag = false;
-    private final static Boolean flag = true;
+	private final static Boolean flag = false;
+//	private final static Boolean flag = true;
 
-    public static void main(String[] args) {
-        log("test print...");
-    }
+	public static void main(String[] args) {
+		log("test print...");
+	}
 
-    /**
-     * 打印信息
-     *
-     * @param object
-     */
-    public static void log(Object object) {
-        if (flag) {
-            System.out.println(object);
-        }
-    }
+	/**
+	 * 打印信息
+	 *
+	 * @param object
+	 */
+	public static void log(Object object) {
+		if (flag) {
+			System.out.println(object);
+		}
+	}
 
-    /**
-     * 打印List<Object>中的每个元素（基本类型：int, String, ...）
-     *
-     * @param list
-     */
-    public static void log(List<Object> list) {
-        for (int i = 0; i < list.size(); i++) {
-            log(list.get(i));
-        }
-    }
-
+	/**
+	 * 打印List<Object>中的每个元素（基本类型：int, String, ...）
+	 *
+	 * @param list
+	 */
+	public static void log(List<Object> list) {
+		for (int i = 0; i < list.size(); i++) {
+			log(list.get(i));
+		}
+	}
+	
 //	/**
 //	 * 打印List<Domain>中的每个元素
 //	 * @param list
@@ -100,6 +100,6 @@ public class Log {
 //					" --> termUrl: " + term.getTermUrl());
 //		}
 //	}
-
+	
 
 }

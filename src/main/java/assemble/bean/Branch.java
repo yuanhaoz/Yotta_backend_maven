@@ -1,17 +1,21 @@
 package assemble.bean;
 
 /**
- * 抽象类：分枝父类
+ * 抽象类：分枝父类   
+ * 
  * 1. totalbranchlevel: 分枝层次
- * 2. facet_name: 分枝（分面）名
+ * 2. facet_name: 分枝（分面）名   
  * 3. totalbranchnum: 子分枝（子分面）数目
  * 4. type: 分枝（分面）默认都为"branch"
  * 5. List<***>: 每个子类自己实现
  * 6. totalleafnum: 叶子数量
+ * 
  * 多余：
  * branchnum: 值为totalbranchnum相同，因此删除
  * facet_id: 没有用到，可以删除
- * @author 郑元浩
+ *
+ *
+ * @author 郑元浩 
  * @date 2016年12月4日
  */
 public class Branch {
@@ -21,6 +25,7 @@ public class Branch {
     public int totalbranchnum;
     public String type;
     public int totalleafnum;
+
 
     public int getTotalbranchlevel() {
         return totalbranchlevel;
@@ -62,25 +67,5 @@ public class Branch {
         this.totalleafnum = totalleafnum;
     }
 
-    public Branch(int totalbranchlevel, String facet_name, int totalbranchnum, String type, int totalleafnum) {
-        this.totalbranchlevel = totalbranchlevel;
-        this.facet_name = facet_name;
-        this.totalbranchnum = totalbranchnum;
-        this.type = type;
-        this.totalleafnum = totalleafnum;
-    }
 
-    public Branch() {
-    }
-
-    @Override
-    public String toString() {
-        return "Branch{" +
-                "totalbranchlevel=" + totalbranchlevel +
-                ", facet_name='" + facet_name + '\'' +
-                ", totalbranchnum=" + totalbranchnum +
-                ", type='" + type + '\'' +
-                ", totalleafnum=" + totalleafnum +
-                '}';
-    }
 }

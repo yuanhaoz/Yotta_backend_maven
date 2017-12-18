@@ -1,50 +1,38 @@
 package spider;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import app.Config;
+import app.error;
+import app.success;
+import domainTopic.DomainTopicDAO;
+import io.swagger.annotations.*;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-
 import spider.bean.Count;
 import spider.bean.Image;
 import spider.bean.Text;
 import utils.FragmentSplit;
 import utils.Log;
 import utils.mysqlUtils;
-import app.Config;
-import app.error;
-import app.success;
-import domainTopic.DomainTopicDAO;
 
-/**
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+/**  
  * 碎片化知识采集
- * @author 郑元浩
+ * @author 郑元浩 
  */
 @Path("/SpiderAPI")
 @Api(value = "SpiderAPI")
 public class SpiderAPI {
+
+    public static void main(String[] args) {
+
+    }
+
 
     @GET
     @Path("/getFragmentByTopicArray")
@@ -731,7 +719,7 @@ public class SpiderAPI {
         return response;
     }
 
-    @GET
+    @POST
     @Path("/createFragment")
     @ApiOperation(value = "创建碎片", notes = "创建碎片")
     @ApiResponses(value = {
@@ -739,7 +727,9 @@ public class SpiderAPI {
             @ApiResponse(code = 200, message = "正常返回结果", response = success.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response createFragment(@ApiParam(value = "FragmentContent", required = true) @QueryParam("FragmentContent") String FragmentContent) {
+    public static Response createFragment(
+            @FormParam("FragmentContent") String FragmentContent
+    ) {
 //		Response response = null;
         /**
          * 创建碎片
@@ -757,6 +747,7 @@ public class SpiderAPI {
                 result = mysql.addDeleteModify(sql, params);
             } catch (Exception e) {
                 e.printStackTrace();
+                return Response.status(401).entity(new error(e.getMessage())).build();
             } finally {
                 mysql.closeconnection();
             }
@@ -768,7 +759,6 @@ public class SpiderAPI {
         } catch (Exception e) {
             return Response.status(402).entity(new error(e.toString())).build();
         }
-
     }
 
     @GET
@@ -866,7 +856,6 @@ public class SpiderAPI {
         } finally {
             mysql.closeconnection();
         }
-        //System.out.println(response.getEntity());
         return response;
     }
 
@@ -909,7 +898,13 @@ public class SpiderAPI {
             @ApiResponse(code = 200, message = "正常返回结果", response = success.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response addFacetFragment(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName, @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName, @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName, @ApiParam(value = "分面级数", required = true) @QueryParam("FacetLayer") String FacetLayer, @ApiParam(value = "FragmentID", required = true) @QueryParam("FragmentID") String FragmentID) {
+    public static Response addFacetFragment(
+            @ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName,
+            @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName,
+            @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName,
+            @ApiParam(value = "分面级数", required = true) @QueryParam("FacetLayer") String FacetLayer,
+            @ApiParam(value = "FragmentID", required = true) @QueryParam("FragmentID") String FragmentID
+    ) {
 //		Response response = null;
         /**
          * 向分面添加碎片

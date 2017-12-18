@@ -1,11 +1,10 @@
 package utils;
 /**
- * 类说明
+ * 类说明   
  *
  * @author 郑元浩
- * @date 2017年10月20日 下午7:49:09
+ * @date 2017年10月20日 下午7:49:09 
  */
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
