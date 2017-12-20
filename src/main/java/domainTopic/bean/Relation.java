@@ -1,53 +1,40 @@
 package domainTopic.bean;
 
-import java.util.List;
-
 /**
- * 存储主题之间的上下位关系: 子节点是主题元素   
+ * 存在上下位关系的两个主题   
  *
  * @author 郑元浩 
  * @date 2016年12月20日
  */
 public class Relation {
 
-    public int topicID;
-    public String topicName;
-    public List<Topic> topicList;
+    public String parent;
+    public String child;
 
-    public int getTopicID() {
-        return topicID;
+    public String getParent() {
+        return parent;
     }
 
-    public void setTopicID(int topicID) {
-        this.topicID = topicID;
+    public void setParent(String parent) {
+        this.parent = parent;
     }
 
-    public String getTopicName() {
-        return topicName;
+    public String getChild() {
+        return child;
     }
 
-    public void setTopicName(String topicName) {
-        this.topicName = topicName;
-    }
-
-    public List<Topic> getTopicList() {
-        return topicList;
-    }
-
-    public void setTopicList(List<Topic> topicList) {
-        this.topicList = topicList;
+    public void setChild(String child) {
+        this.child = child;
     }
 
     /**
-     * @param topicID
-     * @param topicName
-     * @param topicList
+     * @param parent
+     * @param child
      */
-    public Relation(int topicID, String topicName, List<Topic> topicList) {
+    public Relation(String parent, String child) {
         super();
-        this.topicID = topicID;
-        this.topicName = topicName;
-        this.topicList = topicList;
+        this.parent = parent;
+        this.child = child;
     }
 
 
