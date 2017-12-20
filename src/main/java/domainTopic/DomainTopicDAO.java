@@ -2,8 +2,8 @@ package domainTopic;
 
 import app.Config;
 import domainTopic.bean.DomainTopic;
-import domainTopic.bean.Rela;
-import domainTopic.bean.Topic;
+import domainTopic.bean.Relation;
+import domainTopic.bean.TopicShangXiaWei;
 import utils.Log;
 import utils.mysqlUtils;
 
@@ -127,8 +127,8 @@ public class DomainTopicDAO {
      * @param className
      * @return
      */
-    public static List<Rela> getRelationList(String className) {
-        List<Rela> relaList = new ArrayList<Rela>();
+    public static List<Relation> getRelationList(String className) {
+        List<Relation> relaList = new ArrayList<Relation>();
         /**
          * 读取domain_topic，获得每一层知识主题
          */
@@ -142,7 +142,7 @@ public class DomainTopicDAO {
                 Map<String, Object> map = results.get(i);
                 String parent = map.get("Parent").toString();
                 String child = map.get("Child").toString();
-                Rela topic = new Rela(parent, child);
+                Relation topic = new Relation(parent, child);
                 relaList.add(topic);
             }
         } catch (Exception e) {
@@ -159,8 +159,8 @@ public class DomainTopicDAO {
      * @param className
      * @return
      */
-    public static List<Rela> getRelationList(String className, String parentTopic) {
-        List<Rela> relaList = new ArrayList<Rela>();
+    public static List<Relation> getRelationList(String className, String parentTopic) {
+        List<Relation> relaList = new ArrayList<Relation>();
         /**
          * 读取domain_topic，获得每一层知识主题
          */
@@ -175,7 +175,7 @@ public class DomainTopicDAO {
                 Map<String, Object> map = results.get(i);
                 String parent = map.get("Parent").toString();
                 String child = map.get("Child").toString();
-                Rela topic = new Rela(parent, child);
+                Relation topic = new Relation(parent, child);
                 relaList.add(topic);
             }
         } catch (Exception e) {
@@ -249,7 +249,7 @@ public class DomainTopicDAO {
 
     ///////////////66666666666666666666666666666666//////////////////////
     private static int topicNum = 0;
-    private static List<Rela> relaListRec = new ArrayList<Rela>();
+    private static List<Relation> relaListRec = new ArrayList<Relation>();
 
     /**
      * 递归实现获取所有主题关系数据
@@ -259,28 +259,28 @@ public class DomainTopicDAO {
      * @param topicNeed
      * @return
      */
-    public static Topic getRelationAll(String className, String topicNeed) {
+    public static TopicShangXiaWei getRelationAll(String className, String topicNeed) {
         /**
          * 用于存储该父亲节点的所有下位主题信息
          */
-        Topic topicAll = new Topic();
+        TopicShangXiaWei topicAll = new TopicShangXiaWei();
 
 //		String topicNeed = "数据结构";
         Object data = "";
 //		int parentID = DomainTopicDAO.getDomainTopic(className, topicNeed); // 得到父主题ID
         int parentID = topicNum++; // 得到父主题ID
-        List<Topic> childrenList = new ArrayList<Topic>();
+        List<TopicShangXiaWei> childrenList = new ArrayList<TopicShangXiaWei>();
 
         /**
          * 获取该知识主题相关的上下位关系的主题信息
          */
-        List<Rela> relaList = DomainTopicDAO.getRelationList(className, topicNeed);
+        List<Relation> relaList = DomainTopicDAO.getRelationList(className, topicNeed);
         if (relaList.size() != 0) {
             /**
              * 存在上下位关系的节点，递归实现
              */
             for (int i = 0; i < relaList.size(); i++) {
-                Rela rela = relaList.get(i);
+                Relation rela = relaList.get(i);
                 String child = rela.getChild();
                 Log.log(rela.getParent() + "-->" + rela.getChild());
                 boolean flag = true;
@@ -296,7 +296,7 @@ public class DomainTopicDAO {
                     continue;
                 }
                 relaListRec.add(rela);
-                Topic topicChild = getRelationAll(className, child);
+                TopicShangXiaWei topicChild = getRelationAll(className, child);
                 childrenList.add(topicChild);
             }
         } else {

@@ -37,7 +37,7 @@ public class AssembleAPI {
 
         List<DomainTopic> domainTopics = DomainTopicDAO.getDomainTopics(className);
         String topicName = domainTopics.get(0).getTermName();
-        return getTreeByTopicForFragment(className, topicName);
+        return getTreeByTopicForFragment(className, topicName, true);
     }
 
     @GET
@@ -196,7 +196,7 @@ public class AssembleAPI {
         return response;
     }
 
-    @GET
+    @POST
     @Path("/getTreeByTopicForFragment")
     @ApiOperation(value = "获得实例化主题分面树的数据", notes = "输入领域名和知识主题，获得实例化主题分面树的数据，碎片包含文本和图片")
     @ApiResponses(value = {
@@ -206,8 +206,10 @@ public class AssembleAPI {
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
     public static Response getTreeByTopicForFragment(
-            @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className,
-            @DefaultValue("抽象资料型别") @ApiParam(value = "主题名", required = true) @QueryParam("TermName") String topicName) {
+            @FormParam("ClassName") String className,
+            @FormParam("TermName") String topicName,
+            @FormParam("HasFragment") boolean hasFragment
+    ) {
 
         Response response = null;
         /**
@@ -250,10 +252,14 @@ public class AssembleAPI {
                 String facet_name = facetSimple.getFacetName();
                 int totalbranchnum = 0;
                 String type = "branch";
-                /**
-                 * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
-                 */
-                List<Leaf> leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, facet_name);
+
+                List<Leaf> leafFragmentList = new ArrayList<>();
+                if (hasFragment) {
+                    /**
+                     * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
+                     */
+                    leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, facet_name);
+                }
                 int totalleafnum = leafFragmentList.size();
                 BranchSimple branchSimple = new BranchSimple(totalbranchlevel2, facet_name, totalbranchnum, type, leafFragmentList, totalleafnum);
                 children.add(branchSimple);
@@ -292,10 +298,17 @@ public class AssembleAPI {
                         String secondFacetName = secondFacet.getFacetName();
                         int totalbranchnum3 = 0;
                         String type3 = "branch";
-                        /**
-                         * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
-                         */
-                        List<Leaf> leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, secondFacetName);
+                        List<Leaf> leafFragmentList = new ArrayList<>();
+                        if (hasFragment) {
+                            /**
+                             * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
+                             */
+                            leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, secondFacetName);
+                        }
+//                        /**
+//                         * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
+//                         */
+//                        List<Leaf> leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, secondFacetName);
                         int totalleafnum = leafFragmentList.size();
                         BranchSimple branchSimple = new BranchSimple(totalbranchlevel3, secondFacetName, totalbranchnum3, type3, leafFragmentList, totalleafnum);
                         branchSimpleList.add(branchSimple);
@@ -310,10 +323,18 @@ public class AssembleAPI {
                             FacetSimple thirdFacet = thirdFacetList.get(k);
                             String thirdFacetName = thirdFacet.getFacetName();
 
-                            /**
-                             * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
-                             */
-                            List<Leaf> leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, thirdFacetName);
+                            List<Leaf> leafFragmentList = new ArrayList<>();
+                            if (hasFragment) {
+                                /**
+                                 * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
+                                 */
+                                leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, thirdFacetName);
+                            }
+
+//                            /**
+//                             * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
+//                             */
+//                            List<Leaf> leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, thirdFacetName);
                             leafAllList.addAll(leafFragmentList);
                         }
                         int totalbranchlevel3 = 0;
@@ -352,17 +373,19 @@ public class AssembleAPI {
     }
 
     @GET
-    @Path("/getTreeByTopic")
-    @ApiOperation(value = "获得实例化主题分面树的数据", notes = "输入领域名和知识主题，获得实例化主题分面树的数据")
+    @Path("/getTreeByTopicForFragment1")
+    @ApiOperation(value = "获得实例化主题分面树的数据", notes = "输入领域名和知识主题，获得实例化主题分面树的数据，碎片包含文本和图片")
     @ApiResponses(value = {
             @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
             @ApiResponse(code = 402, message = "MySql数据库  查询成功，不存在该实例化主题分面树"),
             @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response getTreeByTopic(
+    public static Response getTreeByTopicForFragment1(
             @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className,
-            @DefaultValue("抽象资料型别") @ApiParam(value = "主题名", required = true) @QueryParam("TermName") String topicName) {
+            @DefaultValue("抽象资料型别") @ApiParam(value = "主题名", required = true) @QueryParam("TermName") String topicName,
+            @DefaultValue("false") @ApiParam(value = "是否有碎片", required = true) @QueryParam("HasFragment") boolean hasFragment
+    ) {
 
         Response response = null;
         /**
@@ -405,16 +428,16 @@ public class AssembleAPI {
                 String facet_name = facetSimple.getFacetName();
                 int totalbranchnum = 0;
                 String type = "branch";
-                /**
-                 * 树叶同时包含：文本碎片 + 图片碎片
-                 */
-                List<Leaf> leafList = new ArrayList<Leaf>();
-                List<Leaf> leafTextList = AssembleDAO.getTextByFacet(className, topicName, facet_name);
-                List<Leaf> leafImageListImage = AssembleDAO.getImageByFacet(className, topicName, facet_name);
-                leafList.addAll(leafTextList);
-                leafList.addAll(leafImageListImage);
-                int totalleafnum = leafList.size();
-                BranchSimple branchSimple = new BranchSimple(totalbranchlevel2, facet_name, totalbranchnum, type, leafList, totalleafnum);
+
+                List<Leaf> leafFragmentList = new ArrayList<>();
+                if (hasFragment) {
+                    /**
+                     * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
+                     */
+                    leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, facet_name);
+                }
+                int totalleafnum = leafFragmentList.size();
+                BranchSimple branchSimple = new BranchSimple(totalbranchlevel2, facet_name, totalbranchnum, type, leafFragmentList, totalleafnum);
                 children.add(branchSimple);
 
             } else {
@@ -451,20 +474,23 @@ public class AssembleAPI {
                         String secondFacetName = secondFacet.getFacetName();
                         int totalbranchnum3 = 0;
                         String type3 = "branch";
-                        /**
-                         * 树叶同时包含：文本碎片 + 图片碎片
-                         */
-                        List<Leaf> leafList = new ArrayList<Leaf>();
-                        List<Leaf> leafTextList = AssembleDAO.getTextByFacet(className, topicName, secondFacetName);
-                        List<Leaf> leafImageList = AssembleDAO.getImageByFacet(className, topicName, secondFacetName);
-                        leafList.addAll(leafTextList);
-                        leafList.addAll(leafImageList);
-                        int totalleafnum = leafList.size();
-                        BranchSimple branchSimple = new BranchSimple(totalbranchlevel3, secondFacetName, totalbranchnum3, type3, leafList, totalleafnum);
+                        List<Leaf> leafFragmentList = new ArrayList<>();
+                        if (hasFragment) {
+                            /**
+                             * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
+                             */
+                            leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, secondFacetName);
+                        }
+//                        /**
+//                         * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
+//                         */
+//                        List<Leaf> leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, secondFacetName);
+                        int totalleafnum = leafFragmentList.size();
+                        BranchSimple branchSimple = new BranchSimple(totalbranchlevel3, secondFacetName, totalbranchnum3, type3, leafFragmentList, totalleafnum);
                         branchSimpleList.add(branchSimple);
 
                     } else {
-//						Log.log(className + "--->" + topicName + "--->" + secondFacet.getFacetName() + ", 该二级分面存在三级分面，三级分面待开发");
+                        Log.log(className + "--->" + topicName + "--->" + secondFacet.getFacetName() + ", 该二级分面存在三级分面，三级分面待开发");
                         /**
                          * 存在三级分面，将三级分面的碎片内容全部挂载到二级分面上去
                          */
@@ -473,14 +499,19 @@ public class AssembleAPI {
                             FacetSimple thirdFacet = thirdFacetList.get(k);
                             String thirdFacetName = thirdFacet.getFacetName();
 
-                            /**
-                             * 树叶同时包含：文本碎片 + 图片碎片
-                             */
-                            List<Leaf> leafTextList = AssembleDAO.getTextByFacet(className, topicName, thirdFacetName);
-                            List<Leaf> leafImageList = AssembleDAO.getImageByFacet(className, topicName, thirdFacetName);
-                            leafAllList.addAll(leafTextList);
-                            leafAllList.addAll(leafImageList);
+                            List<Leaf> leafFragmentList = new ArrayList<>();
+                            if (hasFragment) {
+                                /**
+                                 * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
+                                 */
+                                leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, thirdFacetName);
+                            }
 
+//                            /**
+//                             * 树叶同时包含：文本碎片 + 图片碎片，新API读取 assemble_fragment 表格获取文本和图片数据
+//                             */
+//                            List<Leaf> leafFragmentList = AssembleDAO.getFragmentByFacet(className, topicName, thirdFacetName);
+                            leafAllList.addAll(leafFragmentList);
                         }
                         int totalbranchlevel3 = 0;
                         String secondFacetName = secondFacet.getFacetName();
@@ -516,6 +547,5 @@ public class AssembleAPI {
         response = Response.status(200).entity(tree).build();
         return response;
     }
-
 
 }

@@ -8,6 +8,7 @@ package dependency.ranktext;
 
 import dependency.bean.Dependency;
 import org.slf4j.LoggerFactory;
+import utils.Log;
 
 import java.util.*;
 
@@ -32,16 +33,20 @@ public class RankText {
             for (int j = i + 1; j < termList.size(); j++) {
                 Term term1 = termList.get(i);
                 Term term2 = termList.get(j);
-                double dis = CosineSimilarAlgorithm.getSimilarity(term1.getTermText(), term2.getTermText());
-//				logger.info(dis+"");
-                TwoTuple<Term, Term> twoTuple = new TwoTuple<>(term1, term2);
-                disMap.put(twoTuple, dis);
+                if (term1.getTermText().length() == 0 || term2.getTermText().length() == 0 || term1.equals("") || term2.equals("")) {
+                    Log.log("内容为空");
+                } else {
+                    double dis = CosineSimilarAlgorithm.getSimilarity(term1.getTermText(), term2.getTermText());
+//				    logger.info(dis+"");
+                    TwoTuple<Term, Term> twoTuple = new TwoTuple<>(term1, term2);
+                    disMap.put(twoTuple, dis);
+                }
             }
         }
         logger.info("Finish computing the hammingDistance...");
         logger.info("Start ranking...");
 
-        List<Map.Entry<TwoTuple<Term, Term>, Double>> infoIds = new ArrayList<Map.Entry<TwoTuple<Term, Term>, Double>>(disMap.entrySet());
+        List<Map.Entry<TwoTuple<Term, Term>, Double>> infoIds = new ArrayList<>(disMap.entrySet());
         Collections.sort(infoIds, (o1, o2) -> o2.getValue().compareTo(o1.getValue()));
         logger.info("Finish ranking!");
         logger.info("Start printing...");

@@ -8,8 +8,10 @@ package domain.bean;
  */
 public class Domain {
 
-    public int classID;
-    public String className;
+    private int classID;
+    private String className;
+    private String SubjectName;
+    private String Note;
 
     public int getClassID() {
         return classID;
@@ -27,6 +29,22 @@ public class Domain {
         this.className = className;
     }
 
+    public String getSubjectName() {
+        return SubjectName;
+    }
+
+    public void setSubjectName(String subjectName) {
+        SubjectName = subjectName;
+    }
+
+    public String getNote() {
+        return Note;
+    }
+
+    public void setNote(String note) {
+        Note = note;
+    }
+
     /**
      * @param classID
      * @param className
@@ -35,6 +53,23 @@ public class Domain {
         super();
         this.classID = classID;
         this.className = className;
+    }
+
+    public Domain(int classID, String className, String subjectName, String note) {
+        this.classID = classID;
+        this.className = className;
+        SubjectName = subjectName;
+        Note = note;
+    }
+
+    @Override
+    public String toString() {
+        return "Domain{" +
+                "classID=" + classID +
+                ", className='" + className + '\'' +
+                ", SubjectName='" + SubjectName + '\'' +
+                ", Note='" + Note + '\'' +
+                '}';
     }
 
     /**
