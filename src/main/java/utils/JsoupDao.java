@@ -64,5 +64,5 @@ public class JsoupDao {
 		Document doc = Jsoup.parse(html);
 		return doc;
 	}
-	
+
 }

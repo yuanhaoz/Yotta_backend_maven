@@ -1,14 +1,18 @@
 package utils;
 
 import app.Config;
+import assemble.bean.AssembleFragment2;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据库基本操作：
  * 1. 新建表格（基本表格的建表是靠程序自动生成的，而不是手动设置）
  * 2. 删除assemble_fragment中无用的碎片
+ * 3. 将原来已有碎片的数据源SourceName列填上：“中文维基”。将fragmentContent带html标签的碎片内容解析成纯文本内容存储到Text字段中。
+ * 4. 创建Yotta数据库所有表格的索引
  *
  * @author yuanhao
  * @date 2017/12/20 9:12
@@ -17,9 +21,14 @@ public class DatabaseUtils {
 
     public static void main(String[] args) {
 //        deleteBadFragment();
-        createTable();
+//        createTable();
+//        updateSourceName();
+        createIndex();
     }
 
+    /**
+     * 创建Yotta数据库中的所有表格
+     */
     public static void createTable() {
         mysqlUtils mysql = new mysqlUtils();
         List<Object> params = new ArrayList<Object>();
@@ -214,6 +223,91 @@ public class DatabaseUtils {
                 e.printStackTrace();
             }
         }
+        mysql.closeconnection();
+    }
+
+    /**
+     * 1. 将原来已有碎片的数据源SourceName列填上：“中文维基”
+     * 2. 将fragmentContent带html标签的碎片内容解析成纯文本内容存储到Text字段中
+     */
+    public static void updateSourceName(){
+        mysqlUtils mysql = new mysqlUtils();
+
+        // 1. 将原来已有碎片的数据源SourceName列填上：“中文维基”
+        String sql = "update " + Config.ASSEMBLE_FRAGMENT_TABLE + " set SourceName = ?";
+        List<Object> params = new ArrayList<Object>();
+        params.add("中文维基");
+        try {
+//            mysql.addDeleteModify(sql, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // 2. 将fragmentContent带html标签的碎片内容解析成纯文本内容存储到Text字段中
+        // 2.1 解析原有数据
+        sql = "select FragmentID, FragmentContent from " + Config.ASSEMBLE_FRAGMENT_TABLE;
+        List<AssembleFragment2> assembleFragment2List = new ArrayList<>();
+        List<Object> paramsSelect = new ArrayList<Object>();
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, paramsSelect);
+            for (int i = 0; i < results.size(); i++) {
+                AssembleFragment2 assembleFragment2 = new AssembleFragment2();
+                int fragmentID = Integer.parseInt(results.get(i).get("FragmentID").toString());
+                String fragmentContent = results.get(i).get("FragmentContent").toString();
+                String pureText = JsoupDao.parseHtmlText(fragmentContent).text(); // jsoup解析获取纯文本内容
+                assembleFragment2.setFragmentID(fragmentID);
+                assembleFragment2.setText(pureText);
+                assembleFragment2List.add(assembleFragment2);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // 2.2 更新Text字段
+        sql = "update " + Config.ASSEMBLE_FRAGMENT_TABLE + " set Text = ? where FragmentID = ?";
+        for (int i = 0; i < assembleFragment2List.size(); i++) {
+            List<Object> paramsUpdate = new ArrayList<Object>();
+            paramsUpdate.add(assembleFragment2List.get(i).getText());
+            paramsUpdate.add(assembleFragment2List.get(i).getFragmentID());
+            try {
+                mysql.addDeleteModify(sql, paramsUpdate);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // 关闭数据库连接
+        mysql.closeconnection();
+    }
+
+    /**
+     * 创建Yotta数据库所有表格的索引
+     */
+    public static void createIndex() {
+        mysqlUtils mysql = new mysqlUtils();
+        List<Object> params = new ArrayList<Object>();
+
+        String sql1 = "CREATE INDEX domainTopic_ClassName_TermName ON domain_topic (ClassName, TermName);";
+        String sql2 = "CREATE INDEX domainTopicRelation_ClassName_Parent ON domain_topic_relation (ClassName, Parent);";
+        String sql3 = "CREATE INDEX facet_ClassName_FacetName_FacetLayer ON facet (ClassName, FacetName, FacetLayer);";
+        String sql4 = "CREATE INDEX facet_ClassName_FacetLayer ON facet (ClassName, FacetLayer);";
+        String sql5 = "CREATE INDEX facetRelation_ClassName_TermName_ChildFacet_ChildLayer ON facet_relation (ClassName, TermName, ChildFacet, ChildLayer);";
+        String sql6 = "CREATE INDEX assembleFragment_ClassName_TermName_FacetName ON assemble_fragment (ClassName, TermName, FacetName);";
+        String sql7 = "CREATE INDEX dependency_ClassName ON dependency (ClassName);";
+        String sql8 = "CREATE INDEX facet_TermName_ClassName_FacetLayer ON facet (TermName, ClassName, FacetLayer);";
+
+        try {
+            mysql.addDeleteModify(sql1, params);
+            mysql.addDeleteModify(sql2, params);
+            mysql.addDeleteModify(sql3, params);
+            mysql.addDeleteModify(sql4, params);
+            mysql.addDeleteModify(sql5, params);
+            mysql.addDeleteModify(sql6, params);
+            mysql.addDeleteModify(sql7, params);
+            mysql.addDeleteModify(sql8, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         mysql.closeconnection();
     }
 
