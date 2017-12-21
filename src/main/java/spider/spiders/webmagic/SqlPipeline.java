@@ -18,17 +18,17 @@ public class SqlPipeline implements Pipeline{
 
     @Override
     public void process(ResultItems resultItems, Task task) {
-        //定义插入语句参数
-        mysqlUtils mysql = new mysqlUtils();
-        String addSql = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE
-                + "(FragmentContent, Text, FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName,SourceName) values (?,?,?,?,?,?,?,?,?)";
 
         for (Map.Entry<String, Object> entry : resultItems.getAll().entrySet()){
             FragmentContent fragmentContent = (FragmentContent)entry.getValue();
             List<String> fragments = fragmentContent.getFragments();
             List<String> fragmentsPureText = fragmentContent.getFragmentsPureText();
-            System.out.println(fragments);
             for (int i = 0; i < fragments.size(); i++) {
+                mysqlUtils mysql = new mysqlUtils();
+                //定义插入语句参数
+                String addSql = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE
+                        + "(FragmentContent, Text, FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName,SourceName) values (?,?,?,?,?,?,?,?,?)";
+
                 //分面信息
                 Map<String,Object> facetTableMap = resultItems.getRequest().getExtras();
                 //添加碎片表需要的元组值
@@ -58,9 +58,11 @@ public class SqlPipeline implements Pipeline{
                 }
                 catch (SQLException exception){
                     System.out.println(exception.getMessage());
+                } finally {
+                    mysql.closeconnection();
                 }
             }
         }
-        mysql.closeconnection();
+
     }
 }

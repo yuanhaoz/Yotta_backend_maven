@@ -37,7 +37,7 @@ public class SpidersRun {
         // 如果数据库中表格不存在，先新建数据库表格
         DatabaseUtils.createTable();
         // 爬取多门课程
-        String excelPath = SpidersRun.class.getClassLoader().getResource("").getPath() + "domains-test.xls";
+        String excelPath = SpidersRun.class.getClassLoader().getResource("").getPath() + "domains.xls";
         List<Domain> domainList = getDomainFromExcel(excelPath);
         for (int i = 0; i < domainList.size(); i++) {
             Domain domain = domainList.get(i);
@@ -75,24 +75,28 @@ public class SpidersRun {
         String domainName = domain.getClassName();
 
         //爬取百度知道
-        BaiduZhidaoProcessor baiduZhidaoProcessor = new BaiduZhidaoProcessor();
-        baiduZhidaoProcessor.baiduAnswerCrawl(domainName);
-        System.out.println("百度知道碎片爬取完成");
+        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "百度知道")) {
+            BaiduZhidaoProcessor baiduZhidaoProcessor = new BaiduZhidaoProcessor();
+            baiduZhidaoProcessor.baiduAnswerCrawl(domainName);
+        } else {
+            Log.log("数据已经爬取：" + domainName + "，百度知道");
+        }
 
         //爬取知乎
-        ZhihuProcessor zhihuProcessor = new ZhihuProcessor();
-        zhihuProcessor.zhihuAnswerCrawl(domainName);
-        System.out.println("知乎碎片爬取完成");
+        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "知乎")) {
+            ZhihuProcessor zhihuProcessor = new ZhihuProcessor();
+            zhihuProcessor.zhihuAnswerCrawl(domainName);
+        } else {
+            Log.log("数据已经爬取：" + domainName + "，知乎");
+        }
 
         //爬取CSDN
-        CSDNProcessor csdnProcessor = new CSDNProcessor();
-        csdnProcessor.CSDNAnswerCrawl(domainName);
-        System.out.println("CSDN碎片爬取完成");
-
-        //爬取quora
-//        QuoraProcessor quoraProcessor = new QuoraProcessor();
-//        quoraProcessor.quoraAnswerCrawl(domainName);
-//        System.out.println("QUORA碎片爬取完成");
+        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "csdn")) {
+            CSDNProcessor csdnProcessor = new CSDNProcessor();
+            csdnProcessor.CSDNAnswerCrawl(domainName);
+        } else {
+            Log.log("数据已经爬取：" + domainName + "，csdn");
+        }
 
     }
 

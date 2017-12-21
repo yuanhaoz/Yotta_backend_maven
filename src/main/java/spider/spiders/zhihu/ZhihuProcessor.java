@@ -65,7 +65,7 @@ public class ZhihuProcessor implements PageProcessor{
                 .addRequests(requests)
                 .thread(5)
                 .addPipeline(new SqlPipeline())
-//                .addPipeline(new ConsolePipeline())
+                .addPipeline(new ConsolePipeline())
                 .runAsync();
     }
 }
