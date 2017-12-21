@@ -34,8 +34,8 @@ public class MyRregister extends ResourceConfig {
 		beanConfig.setTitle("Yotta知识森林模块 集成API");
 		beanConfig.setVersion("1.0.5");
 		beanConfig.setSchemes(new String[]{"http"});
-		beanConfig.setHost("202.117.54.39:8090");  // 需要修改
-		beanConfig.setBasePath("/Yotta");  // 需要修改
+		beanConfig.setHost(Config.SWAGGERHOST);  // 需要修改
+		beanConfig.setBasePath(Config.SWAGGERBASEPATH);  // 需要修改
 		beanConfig.setLicense(getApplicationName());
 		beanConfig.setContact("郑元浩       Email：994303805@qq.com");
 		beanConfig.setResourcePackage("domain,domainTopic,facet,spider,assemble,dependency,statistics,subject,source");  // 需要修改

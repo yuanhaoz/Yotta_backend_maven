@@ -445,7 +445,8 @@ public class DependencyAPI {
          * 根据主题内容，调用算法得到主题认知关系
          */
         RankText rankText = new RankText();
-        List<Dependency> dependencies = rankText.rankText(termList, ClassName, Config.DEPENDENCEMAX);
+//        List<Dependency> dependencies = rankText.rankText(termList, ClassName, Config.DEPENDENCEMAX);
+        List<Dependency> dependencies = rankText.rankText(termList, ClassName, termList.size());
         /**
          * 指定领域，存储主题间的认知关系
          */
