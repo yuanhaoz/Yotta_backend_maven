@@ -49,6 +49,7 @@ public class Config {
      */
     public static String USER_INFO = "user_info";
     public static String USER_LOG = "user_log";
+    public static String SOURCE_TABLE = "source";
     public static String SUBJECT_TABLE = "subject";
     public static String DOMAIN_TABLE = "domain";
     public static String FACET_TABLE = "facet";

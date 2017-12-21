@@ -1,10 +1,10 @@
 package spider.spiders.wikicn;
 
 import app.Config;
+import assemble.bean.AssembleFragmentFuzhu;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import assemble.bean.AssembleFragment;
 import utils.JsoupDao;
 import utils.Log;
 import utils.SpiderUtils;
@@ -42,15 +42,15 @@ public class FragmentExtract {
 	 * @param doc
 	 * @return
 	 */
-	public static List<AssembleFragment> getSpecialContent(Document doc){
-		List<AssembleFragment> assembleList = new ArrayList<AssembleFragment>();
+	public static List<AssembleFragmentFuzhu> getSpecialContent(Document doc){
+		List<AssembleFragmentFuzhu> assembleList = new ArrayList<AssembleFragmentFuzhu>();
 		Log.log("------------------ 页面所有内容 ----------------------");
 		Elements para = doc.select("div#mw-content-text");
 		if(para.size() != 0){
 			String con = para.get(0).html();
 			String conPureText = para.get(0).text();
 			Log.log(conPureText);
-			AssembleFragment assemble = new AssembleFragment("摘要", con, 1, conPureText);
+			AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu("摘要", con, 1, conPureText);
 			assembleList.add(assemble);
 		}
 		return assembleList;
@@ -61,8 +61,8 @@ public class FragmentExtract {
 	 * @param doc
 	 * @return
 	 */
-	public static List<AssembleFragment> getSummary(Document doc) {
-		List<AssembleFragment> assembleList = new ArrayList<AssembleFragment>();
+	public static List<AssembleFragmentFuzhu> getSummary(Document doc) {
+		List<AssembleFragmentFuzhu> assembleList = new ArrayList<AssembleFragmentFuzhu>();
 		Log.log("------------------ 摘要内容 ----------------------");
 		LinkedList<Element> list = getNodes(doc);
 		String summary = "";
@@ -96,7 +96,7 @@ public class FragmentExtract {
 				summary = child.html();
 				summaryPureText = child.text();
 				Log.log("摘要" + "--->" + child.text());
-				AssembleFragment assemble = new AssembleFragment("摘要", summary, 1, summaryPureText);
+				AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu("摘要", summary, 1, summaryPureText);
 				assembleList.add(assemble);
 			}
 		}
@@ -108,8 +108,8 @@ public class FragmentExtract {
 	 * @param doc
 	 * @return
 	 */
-	public static List<AssembleFragment> getThirdContent(Document doc){
-		List<AssembleFragment> assembleList = new ArrayList<AssembleFragment>();
+	public static List<AssembleFragmentFuzhu> getThirdContent(Document doc){
+		List<AssembleFragmentFuzhu> assembleList = new ArrayList<AssembleFragmentFuzhu>();
 		LinkedList<String> allTitle = getAllTitle(doc);
 		LinkedList<String> thirdTitle = getThirdTitle(doc);
 		LinkedList<Element> nodes = getNodes(doc);
@@ -152,7 +152,7 @@ public class FragmentExtract {
 							content = node.html();
 							contentPureText = node.text();
 //						content = Config.converter.convert(content);
-							AssembleFragment assemble = new AssembleFragment(title, content, 3, contentPureText);
+							AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 3, contentPureText);
 							assembleList.add(assemble);
 							Log.log(node.text());
 						}
@@ -182,7 +182,7 @@ public class FragmentExtract {
 //					if(imgTxt.contains(imgTxt)){
 //						content = content.substring(0, content.indexOf(imgTxt));
 //					}
-						AssembleFragment assemble = new AssembleFragment(title, content, 3, contentPureText);
+						AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 3, contentPureText);
 						assembleList.add(assemble);
 						Log.log(node.text());
 					}
@@ -197,8 +197,8 @@ public class FragmentExtract {
 	 * @param doc
 	 * @return
 	 */
-	public static List<AssembleFragment> getSecondContent(Document doc){
-		List<AssembleFragment> assembleList = new ArrayList<AssembleFragment>();
+	public static List<AssembleFragmentFuzhu> getSecondContent(Document doc){
+		List<AssembleFragmentFuzhu> assembleList = new ArrayList<AssembleFragmentFuzhu>();
 		LinkedList<String> allTitle = getAllTitle(doc);
 		LinkedList<String> secondTitle = getSecondTitle(doc);
 		LinkedList<Element> nodes = getNodes(doc);
@@ -241,7 +241,7 @@ public class FragmentExtract {
 							content = node.html();
 							contentPureText = node.text();
 //						content = Config.converter.convert(content);
-							AssembleFragment assemble = new AssembleFragment(title, content, 2, contentPureText);
+							AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 2, contentPureText);
 							assembleList.add(assemble);
 							Log.log(node.text());
 						}
@@ -271,7 +271,7 @@ public class FragmentExtract {
 //					if(imgTxt.contains(imgTxt)){
 //						content = content.substring(0, content.indexOf(imgTxt));
 //					}
-						AssembleFragment assemble = new AssembleFragment(title, content, 2, contentPureText);
+						AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 2, contentPureText);
 						assembleList.add(assemble);
 						Log.log(node.text());
 					}
@@ -286,8 +286,8 @@ public class FragmentExtract {
 	 * @param doc
 	 * @return
 	 */
-	public static List<AssembleFragment> getFirstContent(Document doc){
-		List<AssembleFragment> assembleList = new ArrayList<AssembleFragment>();
+	public static List<AssembleFragmentFuzhu> getFirstContent(Document doc){
+		List<AssembleFragmentFuzhu> assembleList = new ArrayList<AssembleFragmentFuzhu>();
 		LinkedList<String> firstTitle = getFirstTitle(doc);
 		LinkedList<Element> nodes = getNodes(doc);
 		
@@ -327,7 +327,7 @@ public class FragmentExtract {
 				if (node.text().length() > Config.TEXTLENGTH) {
 					content = node.html();
 					contentPureText = node.text();
-					AssembleFragment assemble = new AssembleFragment(title, content, 1, contentPureText);
+					AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 1, contentPureText);
 					assembleList.add(assemble);
 					Log.log(node.text());
 				}
@@ -347,7 +347,7 @@ public class FragmentExtract {
 			if (node.text().length() > Config.TEXTLENGTH) {
 				content = node.html();
 				contentPureText = node.text();
-				AssembleFragment assemble = new AssembleFragment(title, content, 1, contentPureText);
+				AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 1, contentPureText);
 				assembleList.add(assemble);
 				Log.log(node.text());
 			}

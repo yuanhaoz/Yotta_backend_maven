@@ -26,7 +26,7 @@ public class DatabaseUtils {
         String sqlAssembleFragment = "CREATE TABLE IF NOT EXISTS `assemble_fragment` (\n" +
                 "  `FragmentID` int(20) NOT NULL AUTO_INCREMENT COMMENT '碎片ID',\n" +
                 "  `FragmentContent` longtext CHARACTER SET utf8 NOT NULL COMMENT '碎片内容（包含文本和图片，html形式）',\n" +
-                "  `Text` longtext CHARACTER SET utf8 NOT NULL COMMENT '碎片内容（只有文本，纯文本形式）',\n" +
+                "  `AssembleFragment` longtext CHARACTER SET utf8 NOT NULL COMMENT '碎片内容（只有文本，纯文本形式）',\n" +
                 "  `FragmentScratchTime` datetime DEFAULT NULL COMMENT '碎片爬取时间',\n" +
                 "  `TermID` int(20) DEFAULT NULL COMMENT '主题ID',\n" +
                 "  `TermName` varchar(255) CHARACTER SET utf8 DEFAULT NULL COMMENT '主题名',\n" +

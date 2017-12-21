@@ -7,7 +7,7 @@ package assemble.bean;
  * @author 郑元浩 
  * @date 2016年11月29日
  */
-public class AssembleFragment {
+public class AssembleFragmentFuzhu {
 	
 	public String facetName;
 	public String facetContent;
@@ -46,26 +46,26 @@ public class AssembleFragment {
 	 * @param facetContent
 	 * @param facetLayer
 	 */
-	public AssembleFragment(String facetName, String facetContent, int facetLayer) {
+	public AssembleFragmentFuzhu(String facetName, String facetContent, int facetLayer) {
 		super();
 		this.facetName = facetName;
 		this.facetContent = facetContent;
 		this.facetLayer = facetLayer;
 	}
 
-	public AssembleFragment(String facetName, String facetContent, int facetLayer, String facetContentPureText) {
+	public AssembleFragmentFuzhu(String facetName, String facetContent, int facetLayer, String facetContentPureText) {
 		this.facetName = facetName;
 		this.facetContent = facetContent;
 		this.facetLayer = facetLayer;
 		this.facetContentPureText = facetContentPureText;
 	}
 
-	public AssembleFragment() {
+	public AssembleFragmentFuzhu() {
 	}
 
 	@Override
 	public String toString() {
-		return "AssembleFragment{" +
+		return "AssembleFragmentFuzhu{" +
 				"facetName='" + facetName + '\'' +
 				", facetContent='" + facetContent + '\'' +
 				", facetLayer=" + facetLayer +

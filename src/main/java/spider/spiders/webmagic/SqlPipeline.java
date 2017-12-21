@@ -21,7 +21,7 @@ public class SqlPipeline implements Pipeline{
         //定义插入语句参数
         mysqlUtils mysql = new mysqlUtils();
         String addSql = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE
-                + "(FragmentContent, Text, FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName,SourceName) values (?,?,?,?,?,?,?,?,?)";
+                + "(FragmentContent, AssembleFragment, FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName,SourceName) values (?,?,?,?,?,?,?,?,?)";
 
         for (Map.Entry<String, Object> entry : resultItems.getAll().entrySet()){
             FragmentContent fragmentContent = (FragmentContent)entry.getValue();

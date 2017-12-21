@@ -7,8 +7,9 @@ import domain.bean.Domain;
 import io.swagger.annotations.*;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import spider.bean.Text;
+import spider.bean.AssembleFragment;
 import spider.spiders.SpidersRun;
+import spider.spiders.wikicn.MysqlReadWriteDAO;
 import utils.DatabaseUtils;
 import utils.Log;
 import utils.mysqlUtils;
@@ -58,7 +59,7 @@ public class SpiderAPI {
     @Path("/startSingleSpider")
     @ApiOperation(value = "启动爬虫", notes = "输入学科和课程，启动爬虫")
     @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 401, message = "数据已经爬取"),
             @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
@@ -69,13 +70,82 @@ public class SpiderAPI {
         Response response = null;
         // 如果数据库中表格不存在，先新建数据库表格
         DatabaseUtils.createTable();
-        // 爬取该课程数据
+
         Domain domain = new Domain();
         domain.setSubjectName(SubjectName);
         domain.setClassName(ClassName);
-        SpidersRun.constructKGByDomainName(domain);
-        SpidersRun.spiderFragment(domain);
-        response = Response.status(200).entity("爬取结束").build();
+        if(MysqlReadWriteDAO.judgeByClass(Config.DOMAIN_TABLE, ClassName)) {
+            response = Response.status(401).entity("已经爬取").build();
+        } else {
+            // 爬取该课程数据
+            SpidersRun.constructKGByDomainName(domain);
+            SpidersRun.spiderFragment(domain);
+            response = Response.status(200).entity("爬取结束").build();
+        }
+        return response;
+    }
+
+    @POST
+    @Path("/getFragmentByTopicArrayAndSource")
+    @ApiOperation(value = "获取主题下的碎片数据", notes = "根据课程名、数据源、主题数组，获取主题下的碎片数据")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败", response = String.class),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getFragmentByTopicArrayAndSource(
+            @FormParam("className") String className,
+            @FormParam("topicNames") String topicNames,
+            @FormParam("sourceName") String sourceName
+//            @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("className") String className,
+//            @DefaultValue("树状数组,图论术语") @ApiParam(value = "主题名字符串", required = true) @QueryParam("topicNames")
+//                    String topicNames
+    ) {
+        Response response = null;
+        List<AssembleFragment> assembleFragmentList = new ArrayList<AssembleFragment>();
+        String[] topicNameArray = topicNames.split(",");
+
+        /**
+         * 循环所有主题
+         */
+        for (int i = 0; i < topicNameArray.length; i++) {
+
+            /**
+             * 读取spider_fragment，获得主题碎片
+             */
+            String topicName = topicNameArray[i];
+            mysqlUtils mysql = new mysqlUtils();
+            String sql = "select * from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where ClassName=? and TermName=? and SourceName=?";
+            List<Object> params = new ArrayList<Object>();
+            params.add(className);
+            params.add(topicName);
+            params.add(sourceName);
+            try {
+                List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+                for (int j = 0; j < results.size(); j++) {
+                    Map<String, Object> map = results.get(j);
+                    AssembleFragment assembleFragment = new AssembleFragment();
+                    assembleFragment.setFragmentID(Integer.parseInt(map.get("FragmentID").toString()));
+                    assembleFragment.setFragmentContent(map.get("FragmentContent").toString());
+                    assembleFragment.setText(map.get("Text").toString());
+                    assembleFragment.setFragmentScratchTime(map.get("FragmentScratchTime").toString());
+                    assembleFragment.setTermID(Integer.parseInt(map.get("TermID").toString()));
+                    assembleFragment.setTermName(map.get("TermName").toString());
+                    assembleFragment.setFacetName(map.get("FacetName").toString());
+                    assembleFragment.setFacetLayer(Integer.parseInt(map.get("FacetLayer").toString()));
+                    assembleFragment.setClassName(map.get("ClassName").toString());
+                    assembleFragment.setSourceName(map.get("SourceName").toString());
+                    assembleFragmentList.add(assembleFragment);
+                }
+            } catch (Exception e) {
+                response = Response.status(401).entity(new error(e.toString())).build();
+                e.printStackTrace();
+            } finally {
+                mysql.closeconnection();
+            }
+        }
+        response = Response.status(200).entity(assembleFragmentList).build();
+
         return response;
     }
 
@@ -95,7 +165,7 @@ public class SpiderAPI {
 //                    String topicNames
     ) {
         Response response = null;
-        List<Text> textList = new ArrayList<Text>();
+        List<AssembleFragment> assembleFragmentList = new ArrayList<AssembleFragment>();
         String[] topicNameArray = topicNames.split(",");
 
         /**
@@ -116,14 +186,18 @@ public class SpiderAPI {
                 List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
                 for (int j = 0; j < results.size(); j++) {
                     Map<String, Object> map = results.get(j);
-                    int FragmentID = Integer.parseInt(map.get("FragmentID").toString());
-                    String FragmentContent = map.get("FragmentContent").toString();
-                    String FragmentScratchTime = map.get("FragmentScratchTime").toString();
-                    int TermID = Integer.parseInt(map.get("TermID").toString());
-                    String TermName = map.get("TermName").toString();
-                    String ClassName = map.get("ClassName").toString();
-                    Text text = new Text(FragmentID, FragmentContent, "", "", FragmentScratchTime, TermID, TermName, ClassName);
-                    textList.add(text);
+                    AssembleFragment assembleFragment = new AssembleFragment();
+                    assembleFragment.setFragmentID(Integer.parseInt(map.get("FragmentID").toString()));
+                    assembleFragment.setFragmentContent(map.get("FragmentContent").toString());
+                    assembleFragment.setText(map.get("Text").toString());
+                    assembleFragment.setFragmentScratchTime(map.get("FragmentScratchTime").toString());
+                    assembleFragment.setTermID(Integer.parseInt(map.get("TermID").toString()));
+                    assembleFragment.setTermName(map.get("TermName").toString());
+                    assembleFragment.setFacetName(map.get("FacetName").toString());
+                    assembleFragment.setFacetLayer(Integer.parseInt(map.get("FacetLayer").toString()));
+                    assembleFragment.setClassName(map.get("ClassName").toString());
+                    assembleFragment.setSourceName(map.get("SourceName").toString());
+                    assembleFragmentList.add(assembleFragment);
                 }
             } catch (Exception e) {
                 response = Response.status(401).entity(new error(e.toString())).build();
@@ -132,7 +206,7 @@ public class SpiderAPI {
                 mysql.closeconnection();
             }
         }
-        response = Response.status(200).entity(textList).build();
+        response = Response.status(200).entity(assembleFragmentList).build();
 
         return response;
     }

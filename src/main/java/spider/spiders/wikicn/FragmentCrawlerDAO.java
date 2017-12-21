@@ -1,12 +1,12 @@
 package spider.spiders.wikicn;
 
 import app.Config;
+import assemble.bean.AssembleFragmentFuzhu;
 import dependency.bean.Dependency;
 import dependency.ranktext.RankText;
 import dependency.ranktext.Term;
 import facet.bean.FacetRelation;
 import facet.bean.FacetSimple;
-import org.apache.commons.io.FileUtils;
 import org.gephi.appearance.api.*;
 import org.gephi.appearance.plugin.PartitionElementColorTransformer;
 import org.gephi.appearance.plugin.RankingElementColorTransformer;
@@ -43,7 +43,6 @@ import org.gephi.statistics.plugin.GraphDistance;
 import org.gephi.statistics.plugin.Modularity;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import assemble.bean.AssembleFragment;
 import org.openide.util.Lookup;
 import utils.JsoupDao;
 import utils.Log;
@@ -211,34 +210,34 @@ public class FragmentCrawlerDAO {
 	 * @param doc 解析网页文档
 	 * @return
 	 */
-	public static List<AssembleFragment> getFragment(Document doc){
-		List<AssembleFragment> assembleList = new ArrayList<AssembleFragment>();
+	public static List<AssembleFragmentFuzhu> getFragment(Document doc){
+		List<AssembleFragmentFuzhu> assembleList = new ArrayList<AssembleFragmentFuzhu>();
 
 		Elements mainContents = doc.select("div#mw-content-text").select("span.mw-headline");
 		if(mainContents.size() == 0){
 			// 网页全部内容
-			List<AssembleFragment> specialContent = FragmentExtract.getSpecialContent(doc); // 没有目录栏的词条信息
+			List<AssembleFragmentFuzhu> specialContent = FragmentExtract.getSpecialContent(doc); // 没有目录栏的词条信息
 			assembleList.addAll(specialContent);
 		} else {
 			// 摘要信息
-			List<AssembleFragment> summaryContent = FragmentExtract.getSummary(doc); // 摘要内容
+			List<AssembleFragmentFuzhu> summaryContent = FragmentExtract.getSummary(doc); // 摘要内容
 			assembleList.addAll(summaryContent);
 			// flagFirst 为 true，保留一级分面数据
 			LinkedList<String> firstTitle = FragmentExtract.getFirstTitle(doc);
 			if(firstTitle.size() != 0){
-				List<AssembleFragment> firstContent = FragmentExtract.getFirstContent(doc); // 一级分面内容
+				List<AssembleFragmentFuzhu> firstContent = FragmentExtract.getFirstContent(doc); // 一级分面内容
 				if (firstContent != null) assembleList.addAll(firstContent);
 			}
 			// flagSecond 为 true，保留二级分面数据
 			LinkedList<String> secondTitle = FragmentExtract.getSecondTitle(doc);
 			if(secondTitle.size() != 0){
-				List<AssembleFragment> secondContent = FragmentExtract.getSecondContent(doc); // 二级分面内容
+				List<AssembleFragmentFuzhu> secondContent = FragmentExtract.getSecondContent(doc); // 二级分面内容
 				if (secondContent != null) assembleList.addAll(secondContent);
 			}
 			// flagThird 为 true，保留三级分面数据
 			LinkedList<String> thirdTitle = FragmentExtract.getThirdTitle(doc);
 			if(thirdTitle.size() != 0){
-				List<AssembleFragment> thirdContent = FragmentExtract.getThirdContent(doc); // 三级分面内容
+				List<AssembleFragmentFuzhu> thirdContent = FragmentExtract.getThirdContent(doc); // 三级分面内容
 				if (thirdContent != null) assembleList.addAll(thirdContent);
 			}
 		}
@@ -255,11 +254,11 @@ public class FragmentCrawlerDAO {
 	 * @param doc 解析网页文档
 	 * @return
 	 */
-	public static List<AssembleFragment> getFragmentUseful(String domain, String topic, Document doc){
-		List<AssembleFragment> assembleResultList = new ArrayList<AssembleFragment>();
-		List<AssembleFragment> assembleList = getFragment(doc);
+	public static List<AssembleFragmentFuzhu> getFragmentUseful(String domain, String topic, Document doc){
+		List<AssembleFragmentFuzhu> assembleResultList = new ArrayList<AssembleFragmentFuzhu>();
+		List<AssembleFragmentFuzhu> assembleList = getFragment(doc);
 		for(int i = 0; i < assembleList.size(); i++){
-			AssembleFragment assemble = assembleList.get(i);
+			AssembleFragmentFuzhu assemble = assembleList.get(i);
 			Boolean exist = MysqlReadWriteDAO.judgeFacetRelation(assemble, domain, topic); // 判断该文本碎片对应的分面是否包含子分面
 			Boolean badText = judgeBadText(assemble); // 判断该文本碎片为那个不需要的文本
 			Boolean badLength = FragmentExtract.getContentLen(assemble.getFacetContentPureText()) > Config.TEXTLENGTH; // 去除长度很短且无意义的文本碎片
@@ -561,7 +560,7 @@ public class FragmentCrawlerDAO {
 	 * 判断分面内容是否包含最后一个多余的链接
 	 * @return
 	 */
-	public static Boolean judgeBadText(AssembleFragment assemble){
+	public static Boolean judgeBadText(AssembleFragmentFuzhu assemble){
 		Boolean exist = false;
 		String facetContent = assemble.getFacetContentPureText();
 		String badTxt1 = "本条目";

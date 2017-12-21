@@ -1,7 +1,7 @@
 package spider.spiders.wikicn;
 
 import app.Config;
-import assemble.bean.AssembleFragment;
+import assemble.bean.AssembleFragmentFuzhu;
 import domain.bean.Domain;
 import domainTopic.bean.LayerRelation;
 import domainTopic.bean.Term;
@@ -427,9 +427,9 @@ public class MysqlReadWriteDAO {
 	 * 存储assemble_fragment
 	 * @return
 	 */
-	public static void storeFragment(String domain, int topicID, String topicName, String topicUrl, List<AssembleFragment> assembleFragmentList) throws Exception {
+	public static void storeFragment(String domain, int topicID, String topicName, String topicUrl, List<AssembleFragmentFuzhu> assembleFragmentList) throws Exception {
 		for(int j = 0; j < assembleFragmentList.size(); j++){
-			AssembleFragment assemble = assembleFragmentList.get(j);
+			AssembleFragmentFuzhu assemble = assembleFragmentList.get(j);
 			String facet = assemble.getFacetName();
 			String content = assemble.getFacetContent();
 			String contentPureText = assemble.getFacetContentPureText();
@@ -439,7 +439,7 @@ public class MysqlReadWriteDAO {
 				 * 碎片装配：存储assemble_fragment数据表
 				 */
 				mysqlUtils mysql = new mysqlUtils();
-				String sqlAssemble = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE + "(FragmentContent, Text, "
+				String sqlAssemble = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE + "(FragmentContent, AssembleFragment, "
 						+ "FragmentScratchTime, TermID, TermName, FacetName, FacetLayer, ClassName, SourceName) "
 						+ "values(?, ?, ?, ?, ?, ?, ?, ?, ?)";
 				List<Object> paramsAssemble = new ArrayList<Object>();
@@ -528,7 +528,7 @@ public class MysqlReadWriteDAO {
 	 * @param topic
 	 * @return true表示该领域已经爬取
 	 */
-	public static Boolean judgeFacetRelation(AssembleFragment assemble, String domain, String topic){
+	public static Boolean judgeFacetRelation(AssembleFragmentFuzhu assemble, String domain, String topic){
 		Boolean exist = false;
 		mysqlUtils mysql = new mysqlUtils();
 		String facetName = assemble.getFacetName();

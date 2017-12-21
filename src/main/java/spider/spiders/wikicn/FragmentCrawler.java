@@ -1,7 +1,7 @@
 package spider.spiders.wikicn;
 
 import app.Config;
-import assemble.bean.AssembleFragment;
+import assemble.bean.AssembleFragmentFuzhu;
 import domainTopic.bean.Topic;
 import facet.bean.FacetRelation;
 import facet.bean.FacetSimple;
@@ -76,7 +76,7 @@ public class FragmentCrawler {
 				}
 
 				// 获得Assemble_fragment：一级分面下如果有二级分面，那么一级分面应该没有碎片文本
-				List<AssembleFragment> assembleFragmentList = FragmentCrawlerDAO.getFragmentUseful(domainName, topicName, doc);
+				List<AssembleFragmentFuzhu> assembleFragmentList = FragmentCrawlerDAO.getFragmentUseful(domainName, topicName, doc);
 				if(!existAssembleFragment){
 					MysqlReadWriteDAO.storeFragment(domainName, topicID, topicName, topicUrl, assembleFragmentList);
 					Log.log(domainName + "，" + topicName + "：碎片爬取完毕");
