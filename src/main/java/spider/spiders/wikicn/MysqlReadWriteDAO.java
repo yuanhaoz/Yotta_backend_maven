@@ -403,7 +403,7 @@ public class MysqlReadWriteDAO {
 			int childLayer = facetRelation.getChildLayer();
 			String parentFacet = facetRelation.getParentFacet();
 			int parentLayer = facetRelation.getParentLayer();
-			List<Object> params = new ArrayList<Object>();
+			List<Object> params = new ArrayList<>();
 			params.add(childFacet);
 			params.add(childLayer);
 			params.add(parentFacet);
@@ -439,10 +439,10 @@ public class MysqlReadWriteDAO {
 				 * 碎片装配：存储assemble_fragment数据表
 				 */
 				mysqlUtils mysql = new mysqlUtils();
-				String sqlAssemble = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE + "(FragmentContent, AssembleFragment, "
+				String sqlAssemble = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE + "(FragmentContent, Text, "
 						+ "FragmentScratchTime, TermID, TermName, FacetName, FacetLayer, ClassName, SourceName) "
 						+ "values(?, ?, ?, ?, ?, ?, ?, ?, ?)";
-				List<Object> paramsAssemble = new ArrayList<Object>();
+				List<Object> paramsAssemble = new ArrayList<>();
 				paramsAssemble.add(content);
 				paramsAssemble.add(contentPureText);
 				SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
