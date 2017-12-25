@@ -5,18 +5,23 @@ import app.error;
 import app.success;
 import domain.bean.Domain;
 import io.swagger.annotations.*;
+import org.apache.commons.io.FileUtils;
+import org.eclipse.jetty.util.MultiPartInputStream;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import spider.bean.AssembleFragment;
 import spider.spiders.SpidersRun;
 import spider.spiders.wikicn.MysqlReadWriteDAO;
 import utils.DatabaseUtils;
+import utils.JsoupDao;
 import utils.Log;
 import utils.mysqlUtils;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -30,6 +35,44 @@ import java.util.*;
 public class SpiderAPI {
 
     @POST
+    @Path("/uploadFile")
+    @ApiOperation(value = "上传爬虫excel", notes = "上传爬虫excel")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes(MediaType.MULTIPART_FORM_DATA + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response uploadFile(
+            @FormDataParam("file") FormDataContentDisposition disposition,
+            @FormDataParam("file") InputStream fileInputStream
+    ) throws Exception {
+        Map<String, String> map = new HashMap<>();
+        Response response = null;
+//        Log.log(disposition.getFileName() + ", " + disposition.getType() + ", "  + disposition.getSize());
+        // 判断文件是否为空
+        if (fileInputStream != null) {
+            try {
+                // 文件保存路径
+                File path = new File(SpiderAPI.class.getClassLoader().getResource("").getPath() + "/upload");
+                if (!path.exists()) {
+                    boolean status = path.mkdirs();
+                }
+                String filePath = path + "/" + disposition.getFileName();
+                Log.log("爬虫excel保存路径为：" + filePath);
+                // 转存文件
+                FileUtils.copyInputStreamToFile(fileInputStream, new File(filePath));
+                map.put("msg", "上传成功");
+                response = Response.status(200).entity(map).build();
+            } catch (Exception e) {
+                Log.log(e.getMessage());
+                map.put("msg", "上传失败");
+                response = Response.status(401).entity(map).build();
+            }
+        }
+        return response;
+    }
+
+    @GET
     @Path("/startSpiders")
     @ApiOperation(value = "启动爬虫", notes = "输入课程信息excel文件，启动爬虫")
     @ApiResponses(value = {
@@ -38,14 +81,15 @@ public class SpiderAPI {
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
     public static Response startSpiders(
-            @FormDataParam("imageContent") FormDataContentDisposition disposition,
-            @FormDataParam("imageContent") InputStream fileInputStream
+            @ApiParam(value = "文件名", required = true) @QueryParam("fileName") String fileName
     ) throws Exception {
         Response response = null;
         // 如果数据库中表格不存在，先新建数据库表格
         DatabaseUtils.createTable();
         // 爬取多门课程
-        List<Domain> domainList = SpidersRun.getDomainFromInputStream(fileInputStream);
+        String filePath = SpiderAPI.class.getClassLoader().getResource("").getPath() + "\\upload\\" + fileName;
+        Log.log("加载爬虫所需的课程excel文件：" + filePath);
+        List<Domain> domainList = SpidersRun.getDomainFromExcel(filePath);
         for (int i = 0; i < domainList.size(); i++) {
             Log.log(domainList.get(i));
             SpidersRun.constructKGByDomainName(domainList.get(i));
@@ -740,7 +784,7 @@ public class SpiderAPI {
             String sql_term = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName=? and TermName=?";
             String sql_query = "select * from " + Config.FRAGMENT + " where FragmentID=?";
             String sql_delete = "delete from " + Config.FRAGMENT + " where FragmentID=?";
-            String sql_add = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE + "(FragmentContent,FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName) values(?,?,?,?,?,?,?);";
+            String sql_add = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE + "(FragmentContent,Text,FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName,SourceName) values(?,?,?,?,?,?,?,?,?);";
 
             List<Object> params_term = new ArrayList<Object>();
             params_term.add(ClassName);
@@ -752,12 +796,14 @@ public class SpiderAPI {
                 List<Map<String, Object>> fragmentinfo = mysql.returnMultipleResult(sql_query, params_fragment);
                 List<Object> params_add = new ArrayList<Object>();
                 params_add.add(fragmentinfo.get(0).get("FragmentContent"));
+                params_add.add(JsoupDao.parseHtmlText(fragmentinfo.get(0).get("FragmentContent").toString()).text());
                 params_add.add(fragmentinfo.get(0).get("FragmentScratchTime"));
                 params_add.add(results_term.get(0).get("TermID"));
                 params_add.add(TermName);
                 params_add.add(FacetName);
                 params_add.add(FacetLayer);
                 params_add.add(ClassName);
+                params_add.add("人工");
                 result = mysql.addDeleteModify(sql_add, params_add);
                 if (result) {
                     try {
