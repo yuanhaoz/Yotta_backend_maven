@@ -6,9 +6,18 @@ import app.success;
 import domain.bean.Domain;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
+import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
 import org.eclipse.jetty.util.MultiPartInputStream;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.wltea.analyzer.core.IKSegmenter;
+import org.wltea.analyzer.core.Lexeme;
+import org.wltea.analyzer.lucene.IKAnalyzer;
 import spider.bean.AssembleFragment;
 import spider.spiders.SpidersRun;
 import spider.spiders.wikicn.MysqlReadWriteDAO;
@@ -20,9 +29,7 @@ import utils.mysqlUtils;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -33,6 +40,145 @@ import java.util.*;
 @Path("/SpiderAPI")
 @Api(value = "SpiderAPI")
 public class SpiderAPI {
+
+    @GET
+    @Path("/getAssembleFragmentByID")
+    @ApiOperation(value = "根据碎片ID，获得装配碎片的信息", notes = "根据碎片ID，获得装配碎片的信息")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getAssembleFragmentByID(
+            @ApiParam(value = "碎片ID", required = true) @QueryParam("FragmentID") int FragmentID
+    ) {
+        Response response = null;
+        /**
+         * 获得碎片信息
+         */
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where FragmentID=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(FragmentID);
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+            response = Response.status(200).entity(results).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            response = Response.status(401).entity(new error(e.toString())).build();
+        } finally {
+            mysql.closeconnection();
+        }
+        return response;
+    }
+
+    @GET
+    @Path("/getFragmentByID")
+    @ApiOperation(value = "根据碎片ID，获得未装配碎片的信息", notes = "根据碎片ID，获得未装配碎片的信息")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getFragmentByID(
+            @ApiParam(value = "碎片ID", required = true) @QueryParam("FragmentID") int FragmentID
+    ) {
+        Response response = null;
+        /**
+         * 获得碎片信息
+         */
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from " + Config.FRAGMENT + " where FragmentID=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(FragmentID);
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+            response = Response.status(200).entity(results).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            response = Response.status(401).entity(new error(e.toString())).build();
+        } finally {
+            mysql.closeconnection();
+        }
+        return response;
+    }
+
+    @POST
+    @Path("/getWordcount")
+    @ApiOperation(value = "根据文本内容得到词频", notes = "根据文本内容得到词频")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败", response = String.class),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getWordcount(
+            @FormParam("className") String className,
+            @FormParam("topicNames") String topicNames,
+            @FormParam("sourceName") String sourceName,
+            @FormParam("hasSourceName") boolean hasSourceName
+    ) {
+        Response response = null;
+        String[] topicNameArray = topicNames.split(",");
+        StringBuffer text = new StringBuffer(); // 存储所有文本
+        Map<String, Integer> wordfre = new HashMap<>();
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select FragmentID, Text from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where ClassName=? and TermName=?";
+        if (hasSourceName) {
+            sql = "select FragmentID, Text from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where ClassName=? and TermName=? and SourceName=?";
+        }
+        /**
+         * 循环所有主题
+         */
+        for (int i = 0; i < topicNameArray.length; i++) {
+
+            /**
+             * 读取spider_fragment，获得主题碎片
+             */
+            String topicName = topicNameArray[i];
+            List<Object> params = new ArrayList<Object>();
+            params.add(className);
+            params.add(topicName);
+            if (hasSourceName) {
+                params.add(sourceName);
+            }
+            try {
+                List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+                for (int j = 0; j < results.size(); j++) {
+                    Map<String, Object> map = results.get(j);
+                    text.append(map.get("Text").toString());
+                }
+            } catch (Exception e) {
+                response = Response.status(401).entity(new error(e.toString())).build();
+                e.printStackTrace();
+            }
+        }
+//        Log.log(text.toString());
+        // Lucene Ik Analyzer 中文分词
+        StringReader reader = new StringReader(text.toString());
+        IKSegmenter ik = new IKSegmenter(reader, true); // 当为true时，分词器进行最大词长切分
+        Lexeme lexeme = null;
+        try {
+            while ((lexeme = ik.next()) != null) {
+                String word = lexeme.getLexemeText();
+                if (!wordfre.containsKey(word)) {
+                    wordfre.put(word, 1);
+                } else {
+                    wordfre.put(word, wordfre.get(word) + 1);
+                }
+            }
+        } catch (IOException e) {
+            response = Response.status(401).entity(new error(e.toString())).build();
+            e.printStackTrace();
+        } finally {
+            reader.close();
+        }
+//        for (String word : wordfre.keySet()) {
+//            Log.log(word + "：" + wordfre.get(word));
+//        }
+        mysql.closeconnection();
+        response = Response.status(200).entity(wordfre).build();
+        return response;
+    }
 
     @POST
     @Path("/uploadFile")

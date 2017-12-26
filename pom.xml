@@ -12,6 +12,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
+        <lucene.version>5.5.0</lucene.version>
     </properties>
 
     <repositories>
@@ -167,7 +168,43 @@
             <version>2.6.12</version>
         </dependency>
 
+        <!--Lucene分词-->
+        <!--<dependency>-->
+            <!--<groupId> org.apache.lucene</groupId>-->
+            <!--<artifactId> lucene-core</artifactId>-->
+            <!--<version> ${lucene.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId> org.apache.lucene</groupId>-->
+            <!--<artifactId> lucene-analyzers-common</artifactId>-->
+            <!--<version> ${lucene.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId> org.apache.lucene</groupId>-->
+            <!--<artifactId> lucene-queryparser</artifactId>-->
+            <!--<version> ${lucene.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId> org.apache.lucene</groupId>-->
+            <!--<artifactId> lucene-highlighter</artifactId>-->
+            <!--<version> ${lucene.version}</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>org.wltea.ik-analyzer</groupId>-->
+            <!--<artifactId>ik-analyzer</artifactId>-->
+            <!--<version>3.2.8</version>-->
+        <!--</dependency>-->
+        <!-- https://mvnrepository.com/artifact/com.janeluo/ikanalyzer -->
+        <dependency>
+            <groupId>com.janeluo</groupId>
+            <artifactId>ikanalyzer</artifactId>
+            <version>2012_u6</version>
+        </dependency>
+
+
     </dependencies>
+
+
 
 
 
