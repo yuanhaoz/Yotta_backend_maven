@@ -3,7 +3,12 @@ package domain;
 import app.Config;
 import app.error;
 import app.success;
+import domain.bean.Domain;
+import domain.bean.Domain2;
+import domainTopic.bean.DomainTopic;
 import io.swagger.annotations.*;
+import subject.bean.Subject2;
+import subject.bean.Subject3;
 import utils.Log;
 import utils.mysqlUtils;
 
@@ -24,16 +29,52 @@ import java.util.Map;
 @Api(value = "DomainAPI")
 public class DomainAPI {
 
-    public static void main(String[] args) throws Exception {
-        Response response = getDomain();
-        Log.log(response.getEntity());
-    }
-
     @GET
-    @Path("/hello")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String sayHello() {
-        return "Hello Jersey";
+    @Path("/getDomainsBySubject")
+    @ApiOperation(value = "获得学科和课程信息，不包含主题信息", notes = "获得学科和课程信息，不包含主题信息")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getDomainsBySubject() {
+        Response response = null;
+        List<Subject3> subjects = new ArrayList<>();
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from " + Config.SUBJECT_TABLE;
+        List<Object> params = new ArrayList<>();
+        String sqlDomain = "select * from " + Config.DOMAIN_TABLE + " where SubjectName = ?";
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+            for (int i = 0; i < results.size(); i++) {
+                Subject3 subject = new Subject3();
+                subject.setSubjectID(Integer.parseInt(results.get(i).get("SubjectID").toString()));
+                subject.setSubjectName(results.get(i).get("SubjectName").toString());
+                subject.setNote(results.get(i).get("Note").toString());
+                // 添加课程
+                List<Domain> domains = new ArrayList<>();
+                List<Object> paramsDomain = new ArrayList<>();
+                paramsDomain.add(results.get(i).get("SubjectName").toString());
+                List<Map<String, Object>> resultsDomain = mysql.returnMultipleResult(sqlDomain, paramsDomain);
+                for (int j = 0; j < resultsDomain.size(); j++) {
+                    Domain domain = new Domain();
+                    domain.setClassID(Integer.parseInt(resultsDomain.get(j).get("ClassID").toString()));
+                    domain.setClassName(resultsDomain.get(j).get("ClassName").toString());
+                    domain.setSubjectName(resultsDomain.get(j).get("SubjectName").toString());
+                    domain.setNote(resultsDomain.get(j).get("Note").toString());
+                    domains.add(domain);
+                }
+                subject.setDomains(domains);
+                subjects.add(subject);
+            }
+            response = Response.status(200).entity(subjects).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            response = Response.status(401).entity(new error(e.toString())).build();
+        } finally {
+            mysql.closeconnection();
+        }
+        return response;
     }
 
     @GET

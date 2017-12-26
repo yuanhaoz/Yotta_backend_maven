@@ -735,6 +735,42 @@ public class SpiderAPI {
     }
 
     @POST
+    @Path("/updateFragment")
+    @ApiOperation(value = "更新未装配碎片", notes = "更新未装配碎片")
+    @ApiResponses(value = {
+            @ApiResponse(code = 402, message = "数据库错误", response = error.class),
+            @ApiResponse(code = 200, message = "正常返回结果", response = success.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response updateFragment(
+            @FormParam("FragmentID") String FragmentID,
+            @FormParam("FragmentContent") String FragmentContent
+    ) {
+        /**
+         * 创建碎片
+         */
+        boolean result = false;
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "update " + Config.FRAGMENT + " set FragmentContent = ? where FragmentID = ?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(FragmentContent);
+        params.add(FragmentID);
+        try {
+            result = mysql.addDeleteModify(sql, params);
+            if (result) {
+                return Response.status(200).entity(new success("碎片更新成功~")).build();
+            } else {
+                return Response.status(401).entity(new error("碎片更新失败~")).build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(402).entity(new error(e.getMessage())).build();
+        } finally {
+            mysql.closeconnection();
+        }
+    }
+
+    @POST
     @Path("/createFragment")
     @ApiOperation(value = "创建碎片", notes = "创建碎片")
     @ApiResponses(value = {

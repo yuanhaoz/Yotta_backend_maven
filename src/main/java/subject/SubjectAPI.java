@@ -67,7 +67,7 @@ public class SubjectAPI {
 
     @GET
     @Path("/getSubjectWithDomain")
-    @ApiOperation(value = "获得学科和课程信息", notes = "获得学科和课程信息")
+    @ApiOperation(value = "获得学科、课程和主题信息", notes = "获得学科、课程和主题信息")
     @ApiResponses(value = {
             @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
             @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
