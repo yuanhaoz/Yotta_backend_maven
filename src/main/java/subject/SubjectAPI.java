@@ -32,10 +32,6 @@ import java.util.Map;
 @Api(value = "SubjectAPI")
 public class SubjectAPI {
 
-    public static void main(String[] args) {
-
-    }
-
     @GET
     @Path("/getSubject")
     @ApiOperation(value = "获得所有学科信息", notes = "获得所有学科信息")

@@ -3,21 +3,33 @@ package spider;
 import app.Config;
 import app.error;
 import app.success;
-import domainTopic.DomainTopicDAO;
+import domain.bean.Domain;
 import io.swagger.annotations.*;
+import org.apache.commons.io.FileUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
+import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
+import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
+import org.eclipse.jetty.util.MultiPartInputStream;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import spider.bean.Count;
-import spider.bean.Image;
-import spider.bean.Text;
-import utils.FragmentSplit;
+import org.wltea.analyzer.core.IKSegmenter;
+import org.wltea.analyzer.core.Lexeme;
+import org.wltea.analyzer.lucene.IKAnalyzer;
+import spider.bean.AssembleFragment;
+import spider.spiders.SpidersRun;
+import spider.spiders.wikicn.MysqlReadWriteDAO;
+import utils.DatabaseUtils;
+import utils.JsoupDao;
 import utils.Log;
 import utils.mysqlUtils;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.InputStream;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -29,12 +41,305 @@ import java.util.*;
 @Api(value = "SpiderAPI")
 public class SpiderAPI {
 
-    public static void main(String[] args) {
-
+    @GET
+    @Path("/getAssembleFragmentByID")
+    @ApiOperation(value = "根据碎片ID，获得装配碎片的信息", notes = "根据碎片ID，获得装配碎片的信息")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getAssembleFragmentByID(
+            @ApiParam(value = "碎片ID", required = true) @QueryParam("FragmentID") int FragmentID
+    ) {
+        Response response = null;
+        /**
+         * 获得碎片信息
+         */
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where FragmentID=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(FragmentID);
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+            response = Response.status(200).entity(results).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            response = Response.status(401).entity(new error(e.toString())).build();
+        } finally {
+            mysql.closeconnection();
+        }
+        return response;
     }
 
+    @GET
+    @Path("/getFragmentByID")
+    @ApiOperation(value = "根据碎片ID，获得未装配碎片的信息", notes = "根据碎片ID，获得未装配碎片的信息")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getFragmentByID(
+            @ApiParam(value = "碎片ID", required = true) @QueryParam("FragmentID") int FragmentID
+    ) {
+        Response response = null;
+        /**
+         * 获得碎片信息
+         */
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from " + Config.FRAGMENT + " where FragmentID=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(FragmentID);
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+            response = Response.status(200).entity(results).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            response = Response.status(401).entity(new error(e.toString())).build();
+        } finally {
+            mysql.closeconnection();
+        }
+        return response;
+    }
+
+    @POST
+    @Path("/getWordcount")
+    @ApiOperation(value = "根据文本内容得到词频", notes = "根据文本内容得到词频")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败", response = String.class),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getWordcount(
+            @FormParam("className") String className,
+            @FormParam("topicNames") String topicNames,
+            @FormParam("sourceName") String sourceName,
+            @FormParam("hasSourceName") boolean hasSourceName
+    ) {
+        Response response = null;
+        String[] topicNameArray = topicNames.split(",");
+        StringBuffer text = new StringBuffer(); // 存储所有文本
+        Map<String, Integer> wordfre = new HashMap<>();
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select FragmentID, Text from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where ClassName=? and TermName=?";
+        if (hasSourceName) {
+            sql = "select FragmentID, Text from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where ClassName=? and TermName=? and SourceName=?";
+        }
+        /**
+         * 循环所有主题
+         */
+        for (int i = 0; i < topicNameArray.length; i++) {
+
+            /**
+             * 读取spider_fragment，获得主题碎片
+             */
+            String topicName = topicNameArray[i];
+            List<Object> params = new ArrayList<Object>();
+            params.add(className);
+            params.add(topicName);
+            if (hasSourceName) {
+                params.add(sourceName);
+            }
+            try {
+                List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+                for (int j = 0; j < results.size(); j++) {
+                    Map<String, Object> map = results.get(j);
+                    text.append(map.get("Text").toString());
+                }
+            } catch (Exception e) {
+                response = Response.status(401).entity(new error(e.toString())).build();
+                e.printStackTrace();
+            }
+        }
+//        Log.log(text.toString());
+        // Lucene Ik Analyzer 中文分词
+        StringReader reader = new StringReader(text.toString());
+        IKSegmenter ik = new IKSegmenter(reader, true); // 当为true时，分词器进行最大词长切分
+        Lexeme lexeme = null;
+        try {
+            while ((lexeme = ik.next()) != null) {
+                String word = lexeme.getLexemeText();
+                if (!wordfre.containsKey(word)) {
+                    wordfre.put(word, 1);
+                } else {
+                    wordfre.put(word, wordfre.get(word) + 1);
+                }
+            }
+        } catch (IOException e) {
+            response = Response.status(401).entity(new error(e.toString())).build();
+            e.printStackTrace();
+        } finally {
+            reader.close();
+        }
+//        for (String word : wordfre.keySet()) {
+//            Log.log(word + "：" + wordfre.get(word));
+//        }
+        mysql.closeconnection();
+        response = Response.status(200).entity(wordfre).build();
+        return response;
+    }
+
+    @POST
+    @Path("/uploadFile")
+    @ApiOperation(value = "上传爬虫excel", notes = "上传爬虫excel")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes(MediaType.MULTIPART_FORM_DATA + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response uploadFile(
+            @FormDataParam("file") FormDataContentDisposition disposition,
+            @FormDataParam("file") InputStream fileInputStream
+    ) throws Exception {
+        Map<String, String> map = new HashMap<>();
+        Response response = null;
+//        Log.log(disposition.getFileName() + ", " + disposition.getType() + ", "  + disposition.getSize());
+        // 判断文件是否为空
+        if (fileInputStream != null) {
+            try {
+                // 文件保存路径
+                File path = new File(SpiderAPI.class.getClassLoader().getResource("").getPath() + "/upload");
+                if (!path.exists()) {
+                    boolean status = path.mkdirs();
+                }
+                String filePath = path + "/" + disposition.getFileName();
+                Log.log("爬虫excel保存路径为：" + filePath);
+                // 转存文件
+                FileUtils.copyInputStreamToFile(fileInputStream, new File(filePath));
+                map.put("msg", "上传成功");
+                response = Response.status(200).entity(map).build();
+            } catch (Exception e) {
+                Log.log(e.getMessage());
+                map.put("msg", "上传失败");
+                response = Response.status(401).entity(map).build();
+            }
+        }
+        return response;
+    }
 
     @GET
+    @Path("/startSpiders")
+    @ApiOperation(value = "启动爬虫", notes = "输入课程信息excel文件，启动爬虫")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response startSpiders(
+            @ApiParam(value = "文件名", required = true) @QueryParam("fileName") String fileName
+    ) throws Exception {
+        Response response = null;
+        // 如果数据库中表格不存在，先新建数据库表格
+        DatabaseUtils.createTable();
+        // 爬取多门课程
+        String filePath = SpiderAPI.class.getClassLoader().getResource("").getPath() + "\\upload\\" + fileName;
+        Log.log("加载爬虫所需的课程excel文件：" + filePath);
+        List<Domain> domainList = SpidersRun.getDomainFromExcel(filePath);
+        for (int i = 0; i < domainList.size(); i++) {
+            Log.log(domainList.get(i));
+            SpidersRun.constructKGByDomainName(domainList.get(i));
+            SpidersRun.spiderFragment(domainList.get(i));
+        }
+        response = Response.status(200).entity("爬取结束").build();
+        return response;
+    }
+
+    @GET
+    @Path("/startSingleSpider")
+    @ApiOperation(value = "启动爬虫", notes = "输入学科和课程，启动爬虫")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "数据已经爬取"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response startSingleSpider(
+            @ApiParam(value = "学科名", required = true) @QueryParam("SubjectName") String SubjectName,
+            @ApiParam(value = "课程名", required = true) @QueryParam("ClassName") String ClassName
+    ) throws Exception {
+        Response response = null;
+        // 如果数据库中表格不存在，先新建数据库表格
+        DatabaseUtils.createTable();
+
+        Domain domain = new Domain();
+        domain.setSubjectName(SubjectName);
+        domain.setClassName(ClassName);
+        if(MysqlReadWriteDAO.judgeByClass(Config.DOMAIN_TABLE, ClassName)) {
+            response = Response.status(401).entity("已经爬取").build();
+        } else {
+            // 爬取该课程数据
+            SpidersRun.constructKGByDomainName(domain);
+            SpidersRun.spiderFragment(domain);
+            response = Response.status(200).entity("爬取结束").build();
+        }
+        return response;
+    }
+
+    @POST
+    @Path("/getFragmentByTopicArrayAndSource")
+    @ApiOperation(value = "获取主题下的碎片数据", notes = "根据课程名、数据源、主题数组，获取主题下的碎片数据")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败", response = String.class),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getFragmentByTopicArrayAndSource(
+            @FormParam("className") String className,
+            @FormParam("topicNames") String topicNames,
+            @FormParam("sourceName") String sourceName
+//            @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("className") String className,
+//            @DefaultValue("树状数组,图论术语") @ApiParam(value = "主题名字符串", required = true) @QueryParam("topicNames")
+//                    String topicNames
+    ) {
+        Response response = null;
+        List<AssembleFragment> assembleFragmentList = new ArrayList<AssembleFragment>();
+        String[] topicNameArray = topicNames.split(",");
+
+        /**
+         * 循环所有主题
+         */
+        for (int i = 0; i < topicNameArray.length; i++) {
+
+            /**
+             * 读取spider_fragment，获得主题碎片
+             */
+            String topicName = topicNameArray[i];
+            mysqlUtils mysql = new mysqlUtils();
+            String sql = "select * from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where ClassName=? and TermName=? and SourceName=?";
+            List<Object> params = new ArrayList<Object>();
+            params.add(className);
+            params.add(topicName);
+            params.add(sourceName);
+            try {
+                List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+                for (int j = 0; j < results.size(); j++) {
+                    Map<String, Object> map = results.get(j);
+                    AssembleFragment assembleFragment = new AssembleFragment();
+                    assembleFragment.setFragmentID(Integer.parseInt(map.get("FragmentID").toString()));
+                    assembleFragment.setFragmentContent(map.get("FragmentContent").toString());
+                    assembleFragment.setText(map.get("Text").toString());
+                    assembleFragment.setFragmentScratchTime(map.get("FragmentScratchTime").toString());
+                    assembleFragment.setTermID(Integer.parseInt(map.get("TermID").toString()));
+                    assembleFragment.setTermName(map.get("TermName").toString());
+                    assembleFragment.setFacetName(map.get("FacetName").toString());
+                    assembleFragment.setFacetLayer(Integer.parseInt(map.get("FacetLayer").toString()));
+                    assembleFragment.setClassName(map.get("ClassName").toString());
+                    assembleFragment.setSourceName(map.get("SourceName").toString());
+                    assembleFragmentList.add(assembleFragment);
+                }
+            } catch (Exception e) {
+                response = Response.status(401).entity(new error(e.toString())).build();
+                e.printStackTrace();
+            } finally {
+                mysql.closeconnection();
+            }
+        }
+        response = Response.status(200).entity(assembleFragmentList).build();
+
+        return response;
+    }
+
+    @POST
     @Path("/getFragmentByTopicArray")
     @ApiOperation(value = "根据课程名和主题数组，获取主题下的碎片数据", notes = "根据课程名和主题数组，获取主题下的碎片数据")
     @ApiResponses(value = {
@@ -43,11 +348,14 @@ public class SpiderAPI {
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
     public static Response getFragmentByTopicArray(
-            @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("className") String className,
-            @DefaultValue("树状数组,图论术语") @ApiParam(value = "主题名字符串", required = true) @QueryParam("topicNames")
-                    String topicNames) {
+            @FormParam("className") String className,
+            @FormParam("topicNames") String topicNames
+//            @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("className") String className,
+//            @DefaultValue("树状数组,图论术语") @ApiParam(value = "主题名字符串", required = true) @QueryParam("topicNames")
+//                    String topicNames
+    ) {
         Response response = null;
-        List<Text> textList = new ArrayList<Text>();
+        List<AssembleFragment> assembleFragmentList = new ArrayList<AssembleFragment>();
         String[] topicNameArray = topicNames.split(",");
 
         /**
@@ -68,323 +376,30 @@ public class SpiderAPI {
                 List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
                 for (int j = 0; j < results.size(); j++) {
                     Map<String, Object> map = results.get(j);
-                    int FragmentID = Integer.parseInt(map.get("FragmentID").toString());
-                    String FragmentContent = map.get("FragmentContent").toString();
-                    String FragmentScratchTime = map.get("FragmentScratchTime").toString();
-                    int TermID = Integer.parseInt(map.get("TermID").toString());
-                    String TermName = map.get("TermName").toString();
-                    String ClassName = map.get("ClassName").toString();
-                    Text text = new Text(FragmentID, FragmentContent, "", "", FragmentScratchTime, TermID, TermName, ClassName);
-                    textList.add(text);
+                    AssembleFragment assembleFragment = new AssembleFragment();
+                    assembleFragment.setFragmentID(Integer.parseInt(map.get("FragmentID").toString()));
+                    assembleFragment.setFragmentContent(map.get("FragmentContent").toString());
+                    assembleFragment.setText(map.get("Text").toString());
+                    assembleFragment.setFragmentScratchTime(map.get("FragmentScratchTime").toString());
+                    assembleFragment.setTermID(Integer.parseInt(map.get("TermID").toString()));
+                    assembleFragment.setTermName(map.get("TermName").toString());
+                    assembleFragment.setFacetName(map.get("FacetName").toString());
+                    assembleFragment.setFacetLayer(Integer.parseInt(map.get("FacetLayer").toString()));
+                    assembleFragment.setClassName(map.get("ClassName").toString());
+                    assembleFragment.setSourceName(map.get("SourceName").toString());
+                    assembleFragmentList.add(assembleFragment);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
                 response = Response.status(401).entity(new error(e.toString())).build();
+                e.printStackTrace();
             } finally {
                 mysql.closeconnection();
             }
         }
-        response = Response.status(200).entity(textList).build();
+        response = Response.status(200).entity(assembleFragmentList).build();
 
         return response;
     }
-
-    @GET
-    @Path("/getTextByDomain")
-    @ApiOperation(value = "获得某门课程的文本信息", notes = "输入领域名，获得某门课程的文本信息")
-    @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
-            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
-    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response getTextByDomain(
-            @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className) {
-        Response response = null;
-        List<Text> textList = new ArrayList<Text>();
-
-        /**
-         * 读取spider_text，获得知识点的文本碎片
-         */
-        mysqlUtils mysql = new mysqlUtils();
-        String sql = "select * from " + Config.SPIDER_TEXT_TABLE + " where ClassName=?";
-        List<Object> params = new ArrayList<Object>();
-        params.add(className);
-        try {
-            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
-            for (int i = 0; i < results.size(); i++) {
-                Map<String, Object> map = results.get(i);
-                int FragmentID = Integer.parseInt(map.get("FragmentID").toString());
-                String FragmentContent = map.get("FragmentContent").toString();
-                String FragmentUrl = map.get("FragmentUrl").toString();
-                String FragmentPostTime = map.get("FragmentPostTime").toString();
-                String FragmentScratchTime = map.get("FragmentScratchTime").toString();
-                int TermID = Integer.parseInt(map.get("TermID").toString());
-                String TermName = map.get("TermName").toString();
-                String ClassName = map.get("ClassName").toString();
-                Text text = new Text(FragmentID, FragmentContent, FragmentUrl, FragmentPostTime, FragmentScratchTime, TermID, TermName, ClassName);
-                textList.add(text);
-            }
-            response = Response.status(200).entity(textList).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            response = Response.status(401).entity(new error(e.toString())).build();
-        } finally {
-            mysql.closeconnection();
-        }
-
-        return response;
-    }
-
-    @GET
-    @Path("/getTextByTopicArray")
-    @ApiOperation(value = "获得主题数组", notes = "输入领域名和知识主题数组，获得主题数组的文本信息集合")
-    @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "MySql数据库  查询失败", response = String.class),
-            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
-    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response getTextByTopicArray(
-            @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("className") String className,
-            @DefaultValue("树状数组,图论术语") @ApiParam(value = "主题名字符串", required = true) @QueryParam("topicNames")
-                    String topicNames) {
-        Response response = null;
-        List<Text> textList = new ArrayList<Text>();
-        String[] topicNameArray = topicNames.split(",");
-
-        /**
-         * 循环所有主题
-         */
-        for (int i = 0; i < topicNameArray.length; i++) {
-
-            /**
-             * 读取spider_text，获得知识点的文本碎片
-             */
-            String topicName = topicNameArray[i];
-            mysqlUtils mysql = new mysqlUtils();
-            String sql = "select * from " + Config.SPIDER_TEXT_TABLE + " where ClassName=? and TermName=?";
-            List<Object> params = new ArrayList<Object>();
-            params.add(className);
-            params.add(topicName);
-            try {
-                List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
-                for (int j = 0; j < results.size(); j++) {
-                    Map<String, Object> map = results.get(j);
-                    int FragmentID = Integer.parseInt(map.get("FragmentID").toString());
-                    String FragmentContent = map.get("FragmentContent").toString();
-                    String FragmentUrl = map.get("FragmentUrl").toString();
-                    String FragmentPostTime = map.get("FragmentPostTime").toString();
-                    String FragmentScratchTime = map.get("FragmentScratchTime").toString();
-                    int TermID = Integer.parseInt(map.get("TermID").toString());
-                    String TermName = map.get("TermName").toString();
-                    String ClassName = map.get("ClassName").toString();
-                    Text text = new Text(FragmentID, FragmentContent, FragmentUrl, FragmentPostTime, FragmentScratchTime, TermID, TermName, ClassName);
-                    textList.add(text);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                response = Response.status(401).entity(new error(e.toString())).build();
-            } finally {
-                mysql.closeconnection();
-            }
-        }
-        response = Response.status(200).entity(textList).build();
-
-        return response;
-    }
-
-
-    @GET
-    @Path("/getImageByTopicArray")
-    @ApiOperation(value = "获得多个知识主题的图片信息", notes = "输入领域名和多个知识主题，获得多个知识主题的图片信息")
-    @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
-            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
-    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response getImageByTopicArray(
-            @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className,
-            @DefaultValue("树状数组,图论术语") @ApiParam(value = "主题名数组", required = true) @QueryParam("topicNames")
-                    String topicNames) {
-        Response response = null;
-        List<Image> imageList = new ArrayList<Image>();
-        String[] topicNameList = topicNames.split(",");
-
-        /**
-         * 循环所有主题
-         */
-        for (int i = 0; i < topicNameList.length; i++) {
-
-            /**
-             * 读取spider_image，获得知识点的图片碎片
-             */
-            String topicName = topicNameList[i];
-            mysqlUtils mysql = new mysqlUtils();
-            String sql = "select * from " + Config.SPIDER_IMAGE_TABLE + " where ClassName=? and TermName=?";
-            List<Object> params = new ArrayList<Object>();
-            params.add(className);
-            params.add(topicName);
-            try {
-                List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
-                for (int j = 0; j < results.size(); j++) {
-                    Map<String, Object> map = results.get(j);
-                    int ImageID = Integer.parseInt(map.get("ImageID").toString());
-                    String ImageUrl = map.get("ImageUrl").toString();
-                    int ImageWidth = 100;
-                    if (!map.get("ImageWidth").toString().equals("")) {
-                        ImageWidth = Integer.parseInt(map.get("ImageWidth").toString());
-                    }
-                    int ImageHeight = 100;
-                    if (!map.get("ImageHeight").toString().equals("")) {
-                        ImageHeight = Integer.parseInt(map.get("ImageHeight").toString());
-                    }
-                    int TermID = Integer.parseInt(map.get("TermID").toString());
-                    String TermName = map.get("TermName").toString();
-                    String TermUrl = map.get("TermUrl").toString();
-                    String ClassName = map.get("ClassName").toString();
-                    String ImageScratchTime = map.get("ImageScratchTime").toString();
-                    Image image = new Image(ImageID, ImageUrl, ImageWidth, ImageHeight, TermID, TermName, TermUrl, ClassName, ImageScratchTime);
-                    imageList.add(image);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                response = Response.status(401).entity(new error(e.toString())).build();
-            } finally {
-                mysql.closeconnection();
-            }
-        }
-        response = Response.status(200).entity(imageList).build();
-
-        return response;
-    }
-
-
-    @GET
-    @Path("/getCountByDomain2")
-    @ApiOperation(value = "获得某门课程的文本和图片数量", notes = "输入领域名，获得某门课程的文本和图片数量")
-    @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
-            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
-    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response getCountByDomain2(
-            @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className) {
-        Response response = null;
-        List<Count> countList = new ArrayList<Count>();
-        int textSize = 0;
-        int imageSize = 0;
-
-        /**
-         * 统计每个主题的文本碎片数量
-         */
-        List<String> topicList = DomainTopicDAO.getDomainTopicList(className);
-        for (int i = 0; i < topicList.size(); i++) {
-            String topicName = topicList.get(i);
-            /**
-             * 读取spider_text，获得文本数量
-             */
-            mysqlUtils mysql = new mysqlUtils();
-            String sql = "select * from " + Config.SPIDER_TEXT_TABLE + " where ClassName=? and TermName=?";
-            List<Object> params = new ArrayList<Object>();
-            params.add(className);
-            params.add(topicName);
-            try {
-                List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
-                textSize += results.size();
-            } catch (Exception e) {
-                e.printStackTrace();
-                response = Response.status(401).entity(new error(e.toString())).build();
-            } finally {
-                mysql.closeconnection();
-            }
-
-            /**
-             * 读取spider_image，获得文本数量
-             */
-            mysqlUtils mysqlImage = new mysqlUtils();
-            String sqlImage = "select * from " + Config.SPIDER_IMAGE_TABLE + " where ClassName=? and TermName=?";
-            List<Object> paramsImage = new ArrayList<Object>();
-            paramsImage.add(className);
-            paramsImage.add(topicName);
-            try {
-                List<Map<String, Object>> results = mysqlImage.returnMultipleResult(sqlImage, paramsImage);
-                imageSize += results.size();
-            } catch (Exception e) {
-                e.printStackTrace();
-                response = Response.status(401).entity(new error(e.toString())).build();
-            } finally {
-                mysqlImage.closeconnection();
-            }
-        }
-
-        countList.add(new Count("text", textSize));
-        countList.add(new Count("image", imageSize));
-        Log.log("text: " + textSize);
-        Log.log("image: " + imageSize);
-        response = Response.status(200).entity(countList).build();
-
-        return response;
-    }
-
-
-    @GET
-    @Path("/getCountByTopic")
-    @ApiOperation(value = "获得某门课程下主题的文本和图片数量", notes = "输入领域名和主题，获得某门课程下主题的文本和图片数量")
-    @ApiResponses(value = {
-            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
-            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
-    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
-    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response getCountByTopic(
-            @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className,
-            @DefaultValue("抽象资料型别") @ApiParam(value = "主题名", required = true) @QueryParam("TermName") String topicName) {
-        Response response = null;
-        List<Count> countList = new ArrayList<Count>();
-
-        /**
-         * 读取spider_text，获得文本数量
-         */
-        mysqlUtils mysql = new mysqlUtils();
-        String sql = "select * from " + Config.SPIDER_TEXT_TABLE + " where ClassName=? and TermName=?";
-        List<Object> params = new ArrayList<Object>();
-        params.add(className);
-        params.add(topicName);
-        try {
-            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
-            int textSize = results.size();
-            countList.add(new Count("text", textSize));
-            //			response = Response.status(200).entity(results).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            response = Response.status(401).entity(new error(e.toString())).build();
-        } finally {
-            mysql.closeconnection();
-        }
-
-        /**
-         * 读取spider_image，获得文本数量
-         */
-        mysqlUtils mysqlImage = new mysqlUtils();
-        String sqlImage = "select * from " + Config.SPIDER_IMAGE_TABLE + " where ClassName=? and TermName=?";
-        List<Object> paramsImage = new ArrayList<Object>();
-        paramsImage.add(className);
-        paramsImage.add(topicName);
-        try {
-            List<Map<String, Object>> results = mysqlImage.returnMultipleResult(sqlImage, paramsImage);
-            int imageSize = results.size();
-            countList.add(new Count("image", imageSize));
-            //			response = Response.status(200).entity(results).build();
-        } catch (Exception e) {
-            e.printStackTrace();
-            response = Response.status(401).entity(new error(e.toString())).build();
-        } finally {
-            mysqlImage.closeconnection();
-        }
-
-        response = Response.status(200).entity(countList).build();
-
-        return response;
-    }
-
 
     @GET
     @Path("/getDomainTerm")
@@ -915,14 +930,7 @@ public class SpiderAPI {
             String sql_term = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName=? and TermName=?";
             String sql_query = "select * from " + Config.FRAGMENT + " where FragmentID=?";
             String sql_delete = "delete from " + Config.FRAGMENT + " where FragmentID=?";
-            String sql_add = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE + "(FragmentContent,FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName) values(?,?,?,?,?,?,?);";
-
-            String sql_addImage = "insert into " + Config.ASSEMBLE_IMAGE_TABLE + "(ImageUrl,TermID,TermName,FacetLayer,FacetName,ClassName,ImageScratchTime) values(?,?,?,?,?,?,?);";
-            String sql_addText = "insert into " + Config.ASSEMBLE_TEXT_TABLE + "(FragmentContent,FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName) values(?,?,?,?,?,?,?);";
-
-            String sql_addImageSpider = "insert into " + Config.SPIDER_IMAGE_TABLE + "(ImageUrl,TermID,TermName,ClassName,ImageScratchTime) values(?,?,?,?,?);";
-            String sql_addTextSpider = "insert into " + Config.SPIDER_TEXT_TABLE + "(FragmentContent,FragmentScratchTime,TermID,TermName,ClassName) values(?,?,?,?,?);";
-
+            String sql_add = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE + "(FragmentContent,Text,FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName,SourceName) values(?,?,?,?,?,?,?,?,?);";
 
             List<Object> params_term = new ArrayList<Object>();
             params_term.add(ClassName);
@@ -934,77 +942,19 @@ public class SpiderAPI {
                 List<Map<String, Object>> fragmentinfo = mysql.returnMultipleResult(sql_query, params_fragment);
                 List<Object> params_add = new ArrayList<Object>();
                 params_add.add(fragmentinfo.get(0).get("FragmentContent"));
+                params_add.add(JsoupDao.parseHtmlText(fragmentinfo.get(0).get("FragmentContent").toString()).text());
                 params_add.add(fragmentinfo.get(0).get("FragmentScratchTime"));
                 params_add.add(results_term.get(0).get("TermID"));
                 params_add.add(TermName);
                 params_add.add(FacetName);
                 params_add.add(FacetLayer);
                 params_add.add(ClassName);
+                params_add.add("人工");
                 result = mysql.addDeleteModify(sql_add, params_add);
                 if (result) {
                     try {
                         mysql.addDeleteModify(sql_delete, params_fragment);
 
-                        // 将碎片写到assemble_text表
-                        String Content = String.valueOf(fragmentinfo.get(0).get("FragmentContent"));
-                        List<Object> params_addText = new ArrayList<Object>();
-                        params_addText.add(FragmentSplit.getTextFromHtml(Content));
-                        params_addText.add(fragmentinfo.get(0).get("FragmentScratchTime"));
-                        params_addText.add(results_term.get(0).get("TermID"));
-                        params_addText.add(TermName);
-                        params_addText.add(FacetName);
-                        params_addText.add(FacetLayer);
-                        params_addText.add(ClassName);
-                        try {
-                            mysql.addDeleteModify(sql_addText, params_addText);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
-                        // 将碎片写到assemble_image表
-                        if (Content.indexOf("src") > 0) {
-                            List<Object> params_addImage = new ArrayList<Object>();
-                            params_addImage.add(FragmentSplit.getImageFromHtml(Content));
-                            params_addImage.add(results_term.get(0).get("TermID"));
-                            params_addImage.add(TermName);
-                            params_addImage.add(FacetLayer);
-                            params_addImage.add(FacetName);
-                            params_addImage.add(ClassName);
-                            params_addImage.add(fragmentinfo.get(0).get("FragmentScratchTime"));
-                            try {
-                                mysql.addDeleteModify(sql_addImage, params_addImage);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-                        // 将碎片写到spider_text表
-                        List<Object> params_addTextSpider = new ArrayList<Object>();
-                        params_addTextSpider.add(FragmentSplit.getTextFromHtml(Content));
-                        params_addTextSpider.add(fragmentinfo.get(0).get("FragmentScratchTime"));
-                        params_addTextSpider.add(results_term.get(0).get("TermID"));
-                        params_addTextSpider.add(TermName);
-                        params_addTextSpider.add(ClassName);
-                        try {
-                            mysql.addDeleteModify(sql_addTextSpider, params_addTextSpider);
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-
-                        // 将碎片写到spider_image表
-                        if (Content.indexOf("src") > 0) {
-                            List<Object> params_addImageSpider = new ArrayList<Object>();
-                            params_addImageSpider.add(FragmentSplit.getImageFromHtml(Content));
-                            params_addImageSpider.add(results_term.get(0).get("TermID"));
-                            params_addImageSpider.add(TermName);
-                            params_addImageSpider.add(ClassName);
-                            params_addImageSpider.add(fragmentinfo.get(0).get("FragmentScratchTime"));
-                            try {
-                                mysql.addDeleteModify(sql_addImageSpider, params_addImageSpider);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
 
                     } catch (Exception e) {
                         e.printStackTrace();

@@ -10,8 +10,8 @@ import java.util.List;
  */
 public class Log {
 
-	private final static Boolean flag = false;
-//	private final static Boolean flag = true;
+//	private final static Boolean flag = false;
+	private final static Boolean flag = true;
 
 	public static void main(String[] args) {
 		log("test print...");
@@ -55,9 +55,9 @@ public class Log {
 //	 * 打印List中的每个元素
 //	 * @param list
 //	 */
-//	public static void logTopic(List<Topic> list){
+//	public static void logTopic(List<TopicShangXiaWei> list){
 //		for (int i = 0; i < list.size(); i++) {
-//			Topic topic = list.get(i);
+//			TopicShangXiaWei topic = list.get(i);
 //			Log.log("TopicID: " + topic.getTopicID() + 
 //					" --> TopicName: " + topic.getTopicName() + 
 //					" --> TopicUrl: " + topic.getTopicUrl());

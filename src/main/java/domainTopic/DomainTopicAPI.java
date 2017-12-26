@@ -3,7 +3,7 @@ package domainTopic;
 import app.Config;
 import app.error;
 import app.success;
-import domainTopic.bean.Topic;
+import domainTopic.bean.TopicShangXiaWei;
 import io.swagger.annotations.*;
 import utils.mysqlUtils;
 
@@ -69,7 +69,7 @@ public class DomainTopicAPI {
             @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className,
             @DefaultValue("数据结构") @ApiParam(value = "术语名", required = true) @QueryParam("initTopic") String initTopic) {
 
-        Topic topicAll = DomainTopicDAO.getRelationAll(className, initTopic);
+        TopicShangXiaWei topicAll = DomainTopicDAO.getRelationAll(className, initTopic);
         Response response = Response.status(200).entity(topicAll).build();
 
         return response;
