@@ -127,31 +127,4 @@ public class SpidersRun {
         return domains;
     }
 
-    /**
-     * 读取本地excel文件，获取课程和对应的学科信息
-     * @param inputStream 课程excel文件的二进制流信息
-     * @return 课程信息集合
-     */
-    public static List<Domain> getDomainFromInputStream(InputStream inputStream) {
-        List<Domain> domains = new ArrayList<>();
-        try {
-            Workbook wb = Workbook.getWorkbook(inputStream);
-            Sheet st = wb.getSheet(0);
-            int rows = st.getRows();
-            for (int i = 1; i < rows; i++) {
-                String subjectName = st.getCell(0, i).getContents();
-                String domainName = st.getCell(1, i).getContents();
-                Domain domain = new Domain();
-                domain.setClassName(domainName);
-                domain.setSubjectName(subjectName);
-                domains.add(domain);
-            }
-        } catch (BiffException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return domains;
-    }
-
 }
