@@ -56,7 +56,7 @@ public class StackoverflowProcessor implements PageProcessor {
             List<String> fragmentsPureText = reConstruct(title_p, qas_p);
             FragmentContent fragmentContent = new FragmentContent(fragments, fragmentsPureText);
             page.putField("fragmentContent", fragmentContent);
-            System.out.println(page.getUrl().toString());
+            
 
 
         }
