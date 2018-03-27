@@ -11,6 +11,7 @@ import spider.spiders.stackoverflow.StackoverflowProcessor;
 import spider.spiders.wikicn.FragmentCrawler;
 import spider.spiders.wikicn.MysqlReadWriteDAO;
 import spider.spiders.wikicn.TopicCrawler;
+import spider.spiders.yahooanswer.YahooProcessor;
 import spider.spiders.zhihu.ZhihuProcessor;
 import utils.DatabaseUtils;
 import utils.Log;
@@ -107,6 +108,14 @@ public class SpidersRun {
             stackoverflowProcessor.StackoverflowCrawl(domainName);
         } else {
             Log.log("数据已经爬取：" + domainName + "，stackoverflow");
+        }
+
+        //爬取雅虎问答
+        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Yahoo")) {
+            YahooProcessor yahooProcessor = new YahooProcessor();
+            yahooProcessor.YahooCrawl(domainName);
+        } else {
+            Log.log("数据已经爬取：" + domainName + "，yahoo");
         }
 
     }
