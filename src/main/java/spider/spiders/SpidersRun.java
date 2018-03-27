@@ -7,6 +7,7 @@ import jxl.Workbook;
 import jxl.read.biff.BiffException;
 import spider.spiders.baiduzhidao.BaiduZhidaoProcessor;
 import spider.spiders.csdn.CSDNProcessor;
+import spider.spiders.stackoverflow.StackoverflowProcessor;
 import spider.spiders.wikicn.FragmentCrawler;
 import spider.spiders.wikicn.MysqlReadWriteDAO;
 import spider.spiders.wikicn.TopicCrawler;
@@ -24,7 +25,7 @@ import java.util.List;
  * 一、中文维基爬虫
  * 1. 爬取领域术语
  * 2. 爬取领域术语下的知识碎片（等第一步完成才可以第二步）
- *
+ * <p>
  * 二、百度知道、csdn、知乎爬虫（必须在中文维基把课程下的主题和分面爬取之后才能运行）
  * 1. 根据“主题+分面”进行碎片爬取
  *
@@ -55,6 +56,7 @@ public class SpidersRun {
 
     /**
      * 爬取一门课程：主题、主题上下位关系、分面、分面关系、主题认知关系(gephi文件)、中文维基碎片
+     *
      * @param domain 课程
      */
     public static void constructKGByDomainName(Domain domain) throws Exception {
@@ -69,6 +71,7 @@ public class SpidersRun {
 
     /**
      * 爬取一门课程：碎片（数据源为：百度知道、知乎、csdn）
+     *
      * @param domain 课程
      */
     public static void spiderFragment(Domain domain) {
@@ -98,10 +101,19 @@ public class SpidersRun {
             Log.log("数据已经爬取：" + domainName + "，csdn");
         }
 
+        //爬取Stackoverflow
+        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Stackoverflow")) {
+            StackoverflowProcessor stackoverflowProcessor = new StackoverflowProcessor();
+            stackoverflowProcessor.StackoverflowCrawl(domainName);
+        } else {
+            Log.log("数据已经爬取：" + domainName + "，stackoverflow");
+        }
+
     }
 
     /**
      * 读取本地excel文件，获取课程和对应的学科信息
+     *
      * @param excelPath 课程excel文件路径
      * @return 课程信息集合
      */
