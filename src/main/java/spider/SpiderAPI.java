@@ -6,19 +6,13 @@ import app.success;
 import domain.bean.Domain;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
-import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
-import org.apache.lucene.analysis.tokenattributes.PositionIncrementAttribute;
-import org.apache.lucene.analysis.tokenattributes.TypeAttribute;
-import org.eclipse.jetty.util.MultiPartInputStream;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.wltea.analyzer.core.IKSegmenter;
 import org.wltea.analyzer.core.Lexeme;
-import org.wltea.analyzer.lucene.IKAnalyzer;
 import spider.bean.AssembleFragment;
+import spider.bean.EchartObj1;
+import spider.bean.EchartObj2;
 import spider.spiders.SpidersRun;
 import spider.spiders.wikicn.MysqlReadWriteDAO;
 import utils.DatabaseUtils;
@@ -104,6 +98,77 @@ public class SpiderAPI {
     }
 
     @POST
+    @Path("/getFragmentCountBySource")
+    @ApiOperation(value = "根据课程和主题，得到每个数据源下碎片数量分布", notes = "根据课程和主题，得到每个数据源下碎片数量分布")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败", response = String.class),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getFragmentCountBySource(
+            @FormParam("className") String className,
+            @FormParam("topicNames") String topicNames
+    ) {
+        Response response = null;
+        mysqlUtils mysql = new mysqlUtils();
+        String[] topicNameArray = topicNames.split(",");
+        Map<String, Integer> fragmentCount = new HashMap<>();
+        EchartObj2 echartObj2 = new EchartObj2(); // 返回对象：碎片来源和数据源信息
+        List<EchartObj1> echartObj1s = new ArrayList<>(); // 碎片来源
+        List<String> sourceNames = new ArrayList<>(); // 数据源
+        // 获得所有数据源，存到list中
+        String sqlSource = "select SourceName from source order by SourceID";
+        List<Object> params1 = new ArrayList<Object>();
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sqlSource, params1);
+            for (int i = 0; i < results.size(); i++) {
+                String sourceName = results.get(i).get("SourceName").toString();
+                sourceNames.add(sourceName);
+                fragmentCount.put(sourceName, 0);
+            }
+        } catch (Exception e) {
+            response = Response.status(401).entity(new error(e.toString())).build();
+            e.printStackTrace();
+        }
+        // 循环所有主题，获得指定主题每个数据源下的碎片数量
+        String sql = "SELECT Count(af.FragmentID) AS fc " +
+                "FROM " + Config.ASSEMBLE_FRAGMENT_TABLE + " AS af RIGHT JOIN " + Config.SOURCE_TABLE + " AS s " +
+                "ON s.SourceName = af.SourceName AND af.ClassName = ? AND af.TermName = ? " +
+                "GROUP BY s.SourceName ORDER BY s.SourceID ASC";
+        for (int i = 0; i < topicNameArray.length; i++) {
+            String topicName = topicNameArray[i];
+            List<Object> params = new ArrayList<Object>();
+            params.add(className);
+            params.add(topicName);
+            try {
+                List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+                for (int j = 0; j < results.size(); j++) {
+                    String sourceName = sourceNames.get(j);
+                    int count = Integer.parseInt(results.get(j).get("fc").toString());
+                    fragmentCount.put(sourceName, fragmentCount.get(sourceName) + count);
+                }
+            } catch (Exception e) {
+                response = Response.status(401).entity(new error(e.toString())).build();
+                e.printStackTrace();
+            }
+        }
+        mysql.closeconnection();
+        // 得到所有碎片源信息
+        for (String word : fragmentCount.keySet()) {
+            Log.log(word + "：" + fragmentCount.get(word));
+            EchartObj1 echartObj1 = new EchartObj1();
+            echartObj1.setName(word);
+            echartObj1.setValue(fragmentCount.get(word));
+            echartObj1s.add(echartObj1);
+        }
+        // 返回对象：碎片来源和数据源信息
+        echartObj2.setEchartObj1s(echartObj1s);
+        echartObj2.setSources(sourceNames);
+        response = Response.status(200).entity(echartObj2).build();
+        return response;
+    }
+
+    @POST
     @Path("/getWordcount")
     @ApiOperation(value = "根据文本内容得到词频", notes = "根据文本内容得到词频")
     @ApiResponses(value = {
@@ -126,14 +191,8 @@ public class SpiderAPI {
         if (hasSourceName) {
             sql = "select FragmentID, Text from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where ClassName=? and TermName=? and SourceName=?";
         }
-        /**
-         * 循环所有主题
-         */
+        // 循环所有主题
         for (int i = 0; i < topicNameArray.length; i++) {
-
-            /**
-             * 读取spider_fragment，获得主题碎片
-             */
             String topicName = topicNameArray[i];
             List<Object> params = new ArrayList<Object>();
             params.add(className);
@@ -732,6 +791,42 @@ public class SpiderAPI {
             mysql.closeconnection();
         }
         return response;
+    }
+
+    @POST
+    @Path("/updateFragment")
+    @ApiOperation(value = "更新未装配碎片", notes = "更新未装配碎片")
+    @ApiResponses(value = {
+            @ApiResponse(code = 402, message = "数据库错误", response = error.class),
+            @ApiResponse(code = 200, message = "正常返回结果", response = success.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response updateFragment(
+            @FormParam("FragmentID") String FragmentID,
+            @FormParam("FragmentContent") String FragmentContent
+    ) {
+        /**
+         * 创建碎片
+         */
+        boolean result = false;
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "update " + Config.FRAGMENT + " set FragmentContent = ? where FragmentID = ?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(FragmentContent);
+        params.add(FragmentID);
+        try {
+            result = mysql.addDeleteModify(sql, params);
+            if (result) {
+                return Response.status(200).entity(new success("碎片更新成功~")).build();
+            } else {
+                return Response.status(401).entity(new error("碎片更新失败~")).build();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Response.status(402).entity(new error(e.getMessage())).build();
+        } finally {
+            mysql.closeconnection();
+        }
     }
 
     @POST
