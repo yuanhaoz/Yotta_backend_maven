@@ -1,9 +1,16 @@
 package utils;
 
 import app.Config;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 /**  
@@ -55,6 +62,28 @@ public class SpiderUtils {
 		Thread.sleep(1000);
 		driver.quit();
 		return html;
+	}
+
+	public static String httpWikiEN(String url) {
+		String web = "";
+		try {
+			//创建client实例
+			HttpClient client = HttpClients.createDefault();
+			//创建httpget实例
+			HttpGet httpGet = new HttpGet(url);
+			//执行 get请求
+			HttpResponse response = client.execute(httpGet);
+			//返回获取实体
+			HttpEntity entity = response.getEntity();
+			//获取网页内容，指定编码
+			web = EntityUtils.toString(entity, "UTF-8");
+			//输出网页
+			//System.out.println(web);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return web;
 	}
 	
 }

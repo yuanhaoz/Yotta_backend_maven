@@ -12,13 +12,14 @@ import spider.spiders.wikicn.FragmentCrawler;
 import spider.spiders.wikicn.MysqlReadWriteDAO;
 import spider.spiders.wikicn.TopicCrawler;
 import spider.spiders.yahooanswer.YahooProcessor;
+import spider.spiders.wikien.FragmentEnCrawler;
+import spider.spiders.wikien.TopicEnCrawler;
 import spider.spiders.zhihu.ZhihuProcessor;
 import utils.DatabaseUtils;
 import utils.Log;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,7 +37,43 @@ import java.util.List;
 public class SpidersRun {
 
     public static void main(String[] args) throws Exception {
-        // 如果数据库中表格不存在，先新建数据库表格
+//        spiderCn();
+        spiderEn();
+    }
+
+    public static void spiderEn() throws Exception {// 如果数据库中表格不存在，先新建数据库表格
+        DatabaseUtils.createTable();
+        // 爬取多门课程
+        String excelPath = SpidersRun.class.getClassLoader().getResource("").getPath() + "domains-en.xls";
+        List<Domain> domainList = getDomainFromExcel(excelPath);
+        for (int i = 0; i < domainList.size(); i++) {
+            Domain domain = domainList.get(i);
+            boolean hasSpidered = MysqlReadWriteDAO.judgeByClass(Config.DOMAIN_TABLE, domain.getClassName());
+            // 如果domain表已经有这门课程，就不爬取这门课程的数据，没有就爬取
+            if (!hasSpidered) {
+                Log.log("domain表格没有这门课程，开始爬取课程：" + domain);
+                String domainName = domain.getClassName();
+                // 存储领域
+                TopicEnCrawler.storeDomain(domain);
+                // 存储主题
+                TopicEnCrawler.storeTopic(domain);
+                // 存储分面和碎片
+                FragmentEnCrawler.storeKGByDomainName(domainName);
+
+                // 知乎等中文网站
+                spiderFragment(domain);
+
+                // Quora等英文网站
+
+
+            } else {
+                Log.log("domain表格有这门课程，不需要爬取课程：" + domain);
+            }
+        }
+    }
+
+    // 中文网站爬虫
+    public static void spiderCn() throws Exception {// 如果数据库中表格不存在，先新建数据库表格
         DatabaseUtils.createTable();
         // 爬取多门课程
         String excelPath = SpidersRun.class.getClassLoader().getResource("").getPath() + "domains.xls";
