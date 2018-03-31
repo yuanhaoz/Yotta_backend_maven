@@ -7,6 +7,7 @@ import jxl.Workbook;
 import jxl.read.biff.BiffException;
 import spider.spiders.baiduzhidao.BaiduZhidaoProcessor;
 import spider.spiders.csdn.CSDNProcessor;
+import spider.spiders.quora.QuoraProcessor;
 import spider.spiders.stackoverflow.StackoverflowProcessor;
 import spider.spiders.wikicn.FragmentCrawler;
 import spider.spiders.wikicn.MysqlReadWriteDAO;
@@ -155,6 +156,13 @@ public class SpidersRun {
             Log.log("数据已经爬取：" + domainName + "，yahoo");
         }
 
+        //爬取quora
+        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Quora")) {
+            QuoraProcessor quoraProcessor = new QuoraProcessor();
+            quoraProcessor.quoraAnswerCrawl(domainName);
+        } else {
+            Log.log("数据已经爬取：" + domainName + "，quora");
+        }
     }
 
     /**
