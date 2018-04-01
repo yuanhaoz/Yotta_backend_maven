@@ -23,8 +23,7 @@ public class TopicEnCrawlerDAO {
 	 * @throws Exception
 	 */
 	public static List<Term> topic(String url) throws Exception{
-//		String html = SpiderUtils.seleniumWikiCN(url); // Selenium方式获取
-		String html = SpiderUtils.httpWikiEN(url); // Selenium方式获取
+		String html = SpiderUtils.httpWikiEN(url); // Httpclient方式获取
 		Document doc = JsoupDao.parseHtmlText(html);
 		List<Term> termList = TopicEnExtract.getTopic(doc); // 解析没有子分类的术语
 		return termList;
@@ -37,8 +36,7 @@ public class TopicEnCrawlerDAO {
 	 * @throws Exception
 	 */
 	public static List<Term> layer(String url) throws Exception{
-//		String html = SpiderUtils.seleniumWikiCN(url); // Selenium方式获取
-		String html = SpiderUtils.httpWikiEN(url); // Selenium方式获取
+		String html = SpiderUtils.httpWikiEN(url); // Httpclient方式获取
 		Document doc = JsoupDao.parseHtmlText(html);
 		List<Term> termList = TopicEnExtract.getLayer(doc); // 解析有子分类的术语
 		return termList;
@@ -62,13 +60,7 @@ public class TopicEnCrawlerDAO {
 		Set<Term> topicFirstSet = listToSet(topicFirst);
 		Set<Term> topicSecondSet = listToSet(topicSecond);
 		Set<Term> topicThirdSet = listToSet(topicThird);
-		Log.log("topicFirst : " + topicFirst.size());
-		Log.log("topicSecond : " + topicSecond.size());
-		Log.log("topicThird : " + topicThird.size());
-		Log.log("topicFirstSet : " + topicFirstSet.size());
-		Log.log("topicSecondSet : " + topicSecondSet.size());
-		Log.log("topicThirdSet : " + topicThirdSet.size());
-		
+
 		/**
 		 * 第一层元素不在第二层和第三层中可以保存
 		 */

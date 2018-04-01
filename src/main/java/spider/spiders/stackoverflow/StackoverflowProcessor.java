@@ -34,8 +34,7 @@ public class StackoverflowProcessor implements PageProcessor {
             // 下一页
             String next = html.xpath("//a[@rel='next']/@href").get();
             // 加入队列
-            for (String str :
-                    questions) {
+            for (String str : questions) {
                 Request request = new Request();
                 request.setUrl(domain + str);
                 // page.addTargetRequest(domain + str);

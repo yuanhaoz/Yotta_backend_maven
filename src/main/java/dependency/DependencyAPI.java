@@ -8,6 +8,7 @@ import dependency.ranktext.RankText;
 import dependency.ranktext.Term;
 import io.swagger.annotations.*;
 import org.apache.commons.io.FileUtils;
+import org.apache.xpath.operations.Bool;
 import utils.Log;
 import utils.mysqlUtils;
 
@@ -392,7 +393,8 @@ public class DependencyAPI {
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
     public static Response generateDependenceByClassName(
-            @ApiParam(value = "农业史", required = true) @QueryParam("ClassName") String ClassName) {
+            @ApiParam(value = "农业史", required = true) @QueryParam("ClassName") String ClassName,
+            @ApiParam(value = "是否为英文课程", required = true) @QueryParam("isEnglish") Boolean isEnglish) {
         Response response = null;
 
         List<Term> termList = new ArrayList<Term>();
@@ -446,7 +448,7 @@ public class DependencyAPI {
          */
         RankText rankText = new RankText();
 //        List<Dependency> dependencies = rankText.rankText(termList, ClassName, Config.DEPENDENCEMAX);
-        List<Dependency> dependencies = rankText.rankText(termList, ClassName, termList.size());
+        List<Dependency> dependencies = rankText.rankText(termList, ClassName, termList.size(), isEnglish);
         /**
          * 指定领域，存储主题间的认知关系
          */

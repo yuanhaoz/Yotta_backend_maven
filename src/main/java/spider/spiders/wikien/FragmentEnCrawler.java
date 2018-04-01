@@ -31,13 +31,14 @@ public class FragmentEnCrawler {
         /**
          * 读取数据库表格domain_topic，得到领域术语
          */
-        String domain = "Software_engineering";
+//        String domain = "Software_engineering";
         List<Topic> topicList = MysqlReadWriteDAO.getDomainTopic(domainName);
         for (int i = 0; i < topicList.size(); i++) {
             Topic topic = topicList.get(i);
             int topicID = topic.getTopicID();
             String topicName = topic.getTopicName();
             String topicUrl = topic.getTopicUrl();
+            Log.log("处理课程：" + domainName + "，主题：" + topicName);
 
             /**
              * 判断数据是否已经存在
@@ -63,41 +64,43 @@ public class FragmentEnCrawler {
                 List<FacetSimple> facetSimpleList = FragmentEnCrawlerDAO.getFacet(doc);
                 if (!existFacet) {
                     MysqlReadWriteDAO.storeFacet(domainName, topicID, topicName, facetSimpleList);
-                    Log.log(domainName + "，" + topicName + "：分面爬取完毕");
+                    Log.log("分面爬取完毕");
                 } else {
-                    Log.log(domainName + "， " + topicName + "：分面已经爬取");
+                    Log.log("分面已经爬取");
                 }
 
                 // 获取并存储各级分面之间的关系FacetRelation
                 List<FacetRelation> facetRelationList = FragmentEnCrawlerDAO.getFacetRelation(doc);
                 if (!existFacetRelation) {
                     MysqlReadWriteDAO.storeFacetRelation(domainName, topicID, topicName, facetRelationList);
-                    Log.log(domainName + "，" + topicName + "：分面关系爬取完毕");
+                    Log.log("分面关系爬取完毕");
                 } else {
-                    Log.log(domainName + "，" + topicName + "：分面关系已经爬取");
+                    Log.log("分面关系已经爬取");
                 }
 
                 // 获得Assemble_fragment：一级分面下如果有二级分面，那么一级分面应该没有碎片文本
                 List<AssembleFragmentFuzhu> assembleFragmentList = FragmentEnCrawlerDAO.getFragmentUseful(domainName, topicName, doc);
                 if (!existAssembleFragment) {
                     MysqlReadWriteDAO.storeFragment(domainName, topicID, topicName, topicUrl, assembleFragmentList);
-                    Log.log(domainName + "，" + topicName + "：碎片爬取完毕");
+                    Log.log("碎片爬取完毕");
                 } else {
-                    Log.log(domainName + "，" + topicName + "：碎片已经爬取");
+                    Log.log("碎片已经爬取");
                 }
             } else {
-                Log.log(domainName + "，" + topicName + "分面、分面关系、碎片表中数据已经存在");
+                Log.log("分面、分面关系、碎片表中数据已经存在");
             }
         }
 
         /**
          * 保存主题间的上下位关系
          */
-        FragmentEnCrawlerDAO.getDependenceByClassName(domainName);
+        Log.log("处理课程：" + domainName);
+        FragmentEnCrawlerDAO.getDependenceByClassName(domainName, true);
 
         /**
          * 生成gephi文件
          */
+        Log.log("处理课程：" + domainName);
         FragmentEnCrawlerDAO.getGexfByClassName(domainName);
     }
 
