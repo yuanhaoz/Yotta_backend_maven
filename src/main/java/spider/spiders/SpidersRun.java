@@ -54,6 +54,7 @@ public class SpidersRun {
             if (!hasSpidered) {
                 Log.log("domain表格没有这门课程，开始爬取课程：" + domain);
                 constructKGByDomainNameEn(domain);
+//                spiderFragment(domain);
                 spiderFragmentEn(domain);
             } else {
                 Log.log("domain表格有这门课程，不需要爬取课程：" + domain);

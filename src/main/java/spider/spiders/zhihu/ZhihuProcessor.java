@@ -63,7 +63,7 @@ public class ZhihuProcessor implements PageProcessor{
         //3.创建ZhihuProcessor
         YangKuanSpider.create(new ZhihuProcessor())
                 .addRequests(requests)
-                .thread(5)
+                .thread(Config.THREAD)
                 .addPipeline(new SqlPipeline())
                 .addPipeline(new ConsolePipeline())
                 .runAsync();

@@ -26,7 +26,9 @@ public class DatabaseUtils {
 //        updateSourceName();
 //        createIndex();
 
-        String domainName = "Algorithms_and_data_structures";
+//        String domainName = "Abstract_data_types";
+//        String domainName = "String_data_structures";
+        String domainName = "Source_code_generation";
         deleteDbByClassName(domainName);
     }
 

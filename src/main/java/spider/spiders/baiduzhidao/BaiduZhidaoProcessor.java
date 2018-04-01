@@ -55,7 +55,7 @@ public class BaiduZhidaoProcessor implements PageProcessor {
         }
         YangKuanSpider.create(new BaiduZhidaoProcessor())
                 .addRequests(requests)
-                .thread(5)
+                .thread(Config.THREAD)
                 .addPipeline(new SqlPipeline())
                 .addPipeline(new ConsolePipeline())
                 .runAsync();

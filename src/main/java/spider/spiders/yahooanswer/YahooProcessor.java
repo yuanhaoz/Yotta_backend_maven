@@ -9,6 +9,7 @@ import spider.spiders.webmagic.YangKuanSpider;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
+import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Html;
 
@@ -89,8 +90,9 @@ public class YahooProcessor implements PageProcessor {
 
         YangKuanSpider.create(new YahooProcessor())
                 .addRequests(requests)
-                .thread(5)
+                .thread(Config.THREAD)
                 .addPipeline(new SqlPipeline())
+//                .addPipeline(new ConsolePipeline())
                 .runAsync();
 
     }

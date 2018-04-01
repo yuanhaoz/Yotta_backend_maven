@@ -34,7 +34,7 @@ public class RankText {
                 Term term1 = termList.get(i);
                 Term term2 = termList.get(j);
                 if (term1.getTermText().length() == 0 || term2.getTermText().length() == 0 || term1.getTermText().equals("") || term2.getTermText().equals("")) {
-                    Log.log("内容为空");
+//                    Log.log("内容为空");
                 } else {
                     double dis = 0.0;
                     if (isEnglish) {

@@ -9,6 +9,7 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Html;
 import utils.Translate;
@@ -55,8 +56,6 @@ public class StackoverflowProcessor implements PageProcessor {
             List<String> fragmentsPureText = reConstruct(title_p, qas_p);
             FragmentContent fragmentContent = new FragmentContent(fragments, fragmentsPureText);
             page.putField("fragmentContent", fragmentContent);
-            
-
 
         }
 
@@ -84,8 +83,9 @@ public class StackoverflowProcessor implements PageProcessor {
 
         YangKuanSpider.create(new StackoverflowProcessor())
                 .addRequests(requests)
-                .thread(5)
+                .thread(Config.THREAD)
                 .addPipeline(new SqlPipeline())
+//                .addPipeline(new ConsolePipeline())
                 .runAsync();
 
     }

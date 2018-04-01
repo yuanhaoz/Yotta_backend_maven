@@ -78,5 +78,6 @@ public class Config {
      */
     public static ZHConverter converter = ZHConverter.getInstance(ZHConverter.SIMPLIFIED);// 转化为简体中文
     public static int TEXTLENGTH = 50; // 保存文本最短长度
+    public static int THREAD = 3; // webmagic框架爬虫的线程数，不要太多，否则会被禁止
 
 }
