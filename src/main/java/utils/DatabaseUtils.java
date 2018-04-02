@@ -28,7 +28,8 @@ public class DatabaseUtils {
 
 //        String domainName = "Abstract_data_types";
 //        String domainName = "String_data_structures";
-        String domainName = "Source_code_generation";
+//        String domainName = "Source_code_generation";
+        String domainName = "Algorithms_and_data_structures";
         deleteDbByClassName(domainName);
     }
 

@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public class YahooProcessor implements PageProcessor {
-    private Site site = Site.me().setRetryTimes(3).setSleepTime(100);
+    private Site site = Site.me().setRetryTimes(3).setSleepTime(1000).setTimeOut(10000);
     private String content_regex = ".+?search\\?p=.+";
 
 

@@ -11,6 +11,7 @@ import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Html;
+import utils.Log;
 import utils.Translate;
 
 import java.util.ArrayList;
@@ -35,8 +36,8 @@ public class QuoraProcessor implements PageProcessor{
         if (page.getUrl().regex(content_regex).match())
         {
             List<String> links = html.xpath("//a[@class='question_link']/@href").all();
-            for (String l:
-                 links) {
+            Log.log("-->" + links.size());
+            for (String l : links) {
                 Request request = new Request();
                 request.setUrl(domain + l);
                 request.setExtras(page.getRequest().getExtras());
@@ -102,6 +103,6 @@ public class QuoraProcessor implements PageProcessor{
     }
 
 //    public static void main(String[] args) {
-//        new QuoraProcessor().quoraAnswerCrawl("test");
+//        new QuoraProcessor().quoraAnswerCrawl("Source_code_generation");
 //    }
 }
