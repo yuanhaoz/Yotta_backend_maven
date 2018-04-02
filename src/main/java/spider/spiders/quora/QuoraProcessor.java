@@ -51,9 +51,14 @@ public class QuoraProcessor implements PageProcessor{
             String title = html.xpath("//span[@class='QuestionText']/span[@class='rendered_qtext']").get();
             List<String> answers = html.xpath("//div[@class='ui_qtext_expanded']").all();
 
-            List<String> fragments = reConstruct(title, answers);
-            List<String> fragments_p = reConstruct(title_p, answers_p);
-            FragmentContent fragmentContent = new FragmentContent(fragments, fragments_p);
+            List<String> fragments = new ArrayList<>();
+            List<String> fragmentsPureText = new ArrayList<>();
+            if (answers.size() > 0)
+            {
+                fragments.add(title + "\n" + answers.get(0));
+                fragmentsPureText.add(title_p + "\n" + answers_p.get(0));
+            }
+            FragmentContent fragmentContent = new FragmentContent(fragments, fragmentsPureText);
             page.putField("fragment",fragmentContent);
         }
 
