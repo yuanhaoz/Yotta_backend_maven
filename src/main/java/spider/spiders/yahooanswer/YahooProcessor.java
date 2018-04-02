@@ -19,7 +19,7 @@ import java.util.Map;
 
 public class YahooProcessor implements PageProcessor {
     private Site site = Site.me().setRetryTimes(3).setSleepTime(100);
-    private String content_regex = ".+?search.+";
+    private String content_regex = ".+?search\\?p=.+";
 
 
     @Override
@@ -31,6 +31,7 @@ public class YahooProcessor implements PageProcessor {
             List<String> qlinks = html.xpath("//a[@class=' lh-17 fz-m']/@href").all();
             String nextPage = html.xpath("//a[@class='next']/@href").get();
 
+            // 内容链接
             for (String str :
                     qlinks) {
                 Request request = new Request();
@@ -38,10 +39,21 @@ public class YahooProcessor implements PageProcessor {
                 request.setExtras(page.getRequest().getExtras());
                 page.addTargetRequest(request);
             }
-            Request request = new Request();
-            request.setUrl(nextPage);
-            request.setExtras(page.getRequest().getExtras());
-            page.addTargetRequest(request);
+
+            // 下一页链接
+            // 页面多于2个不再爬取
+            Map<String,Object> extras = page.getRequest().getExtras();
+            int currentPage = (int)extras.get("page");
+            if (currentPage < 2)
+            {
+                extras.put("page", currentPage + 1);
+                Request request = new Request();
+                request.setUrl(nextPage);
+                request.setExtras(extras);
+                page.addTargetRequest(request);
+            }
+
+
 
         } else {
             // 雅虎问答的标题
@@ -85,6 +97,7 @@ public class YahooProcessor implements PageProcessor {
                     + facetInformation.get("FacetName");
             //添加链接;设置额外信息
             facetInformation.put("SourceName", "Yahoo");
+            facetInformation.put("page", 1);
             requests.add(request.setUrl(url).setExtras(facetInformation));
         }
 
