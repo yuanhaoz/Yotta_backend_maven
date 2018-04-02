@@ -21,7 +21,7 @@ import java.util.Map;
 public class StackoverflowProcessor implements PageProcessor {
     private Site site = Site.me().setRetryTimes(3).setSleepTime(1000).setTimeOut(10000);
     //判断是不是目录
-    private String content_regex = ".+?search.+";
+    private String content_regex = ".+?search\\?q=.+";
 
     @Override
     public void process(Page page) {

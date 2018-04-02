@@ -20,16 +20,44 @@ import java.util.Map;
 public class QuoraProcessor implements PageProcessor{
 
     private Site site = Site.me().setRetryTimes(3).setSleepTime(1000).setTimeOut(10000);
+
     public Site getSite() {
         return site;
     }
+
+    //判断是不是目录
+    private String content_regex = ".+?search\\?q=.+";
+    private String domain = "https://www.quora.com";
+    // 下拉式加载 只爬取当前页面的所有答案
     public void process(Page page) {
         Html html = page.getHtml();
-        List<String> fragments = html.xpath("div[@class='truncated_q_text search_result_snippet']").all();
-        List<String> fragments_p = html.xpath("div[@class='truncated_q_text search_result_snippet']/allText()").all();
-        FragmentContent fragmentContent = new FragmentContent(fragments, fragments_p);
-        //提交数据
-        page.putField("fragment",fragmentContent);
+
+        if (page.getUrl().regex(content_regex).match())
+        {
+            List<String> links = html.xpath("//a[@class='question_link']/@href").all();
+            for (String l:
+                 links) {
+                Request request = new Request();
+                request.setUrl(domain + l);
+                request.setExtras(page.getRequest().getExtras());
+                page.addTargetRequest(request);
+            }
+        }
+        else
+        {
+            String title_p = html.xpath("//span[@class='QuestionText']/span[@class='rendered_qtext']/text()").get();
+            List<String> answers_p = html.xpath("//div[@class='ui_qtext_expanded']/allText()").all();
+
+            String title = html.xpath("//span[@class='QuestionText']/span[@class='rendered_qtext']").get();
+            List<String> answers = html.xpath("//div[@class='ui_qtext_expanded']").all();
+
+            List<String> fragments = reConstruct(title, answers);
+            List<String> fragments_p = reConstruct(title_p, answers_p);
+            FragmentContent fragmentContent = new FragmentContent(fragments, fragments_p);
+            page.putField("fragment",fragmentContent);
+        }
+
+
     }
     public void quoraAnswerCrawl(String courseName){
 
@@ -44,7 +72,8 @@ public class QuoraProcessor implements PageProcessor{
             String url = "https://www.quora.com/search?q="
                     //+facetInformation.get("ClassName")+" "
                     + facetInformation.get("TermName") + " "
-                    + facetInformation.get("FacetName");
+                    + facetInformation.get("FacetName")
+                    + "&type=question";
             //添加链接;设置额外信息
             facetInformation.put("SourceName", "Quora");
             requests.add(request.setUrl(url).setExtras(facetInformation));
@@ -56,6 +85,15 @@ public class QuoraProcessor implements PageProcessor{
                 .addPipeline(new SqlPipeline())
 //                .addPipeline(new ConsolePipeline())
                 .runAsync();
+    }
+
+    private List<String> reConstruct(String title, List<String> qas) {
+        List<String> ans = new ArrayList<>();
+        int len = qas.size();
+        for (int i = 0; i < len; ++i) {
+            ans.add(title + "\n" + qas.get(i));
+        }
+        return ans;
     }
 
 //    public static void main(String[] args) {
