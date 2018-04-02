@@ -38,11 +38,21 @@ public class StackoverflowProcessor implements PageProcessor {
             for (String str : questions) {
                 Request request = new Request();
                 request.setUrl(domain + str);
-                // page.addTargetRequest(domain + str);
                 request.setExtras(page.getRequest().getExtras());
                 page.addTargetRequest(request);
             }
-            page.addTargetRequest(domain + next);
+            Map<String,Object> extras = page.getRequest().getExtras();
+            int currentPage = (int)extras.get("page");
+            // 页面多于5个不再爬取
+            if (currentPage < 5)
+            {
+                extras.put("page", currentPage + 1);
+                Request request = new Request();
+                request.setUrl(domain + next);
+                request.setExtras(extras);
+                page.addTargetRequest(request);
+            }
+
 
         } else {
             String title = html.xpath("//div[@id='question-header']/h1/a").get();
@@ -52,8 +62,13 @@ public class StackoverflowProcessor implements PageProcessor {
             // 第一个是问题描述 其余的是答案
             List<String> qas_p = html.xpath("//div[@class='post-text']/allText()").all();
 
-            List<String> fragments = reConstruct(title, qas);
-            List<String> fragmentsPureText = reConstruct(title_p, qas_p);
+            List<String> fragments = new ArrayList<>();
+            List<String> fragmentsPureText = new ArrayList<>();
+            if (qas.size() > 0)
+            {
+                fragments.add(title + "\n" + qas.get(0));
+                fragmentsPureText.add(title_p + "\n" + qas_p.get(0));
+            }
             FragmentContent fragmentContent = new FragmentContent(fragments, fragmentsPureText);
             page.putField("fragmentContent", fragmentContent);
 
@@ -77,6 +92,7 @@ public class StackoverflowProcessor implements PageProcessor {
                     + facetInformation.get("TermName") + " "
                     + facetInformation.get("FacetName");
             //添加链接;设置额外信息
+            facetInformation.put("page", 1);
             facetInformation.put("SourceName", "Stackoverflow");
             requests.add(request.setUrl(url).setExtras(facetInformation));
         }

@@ -41,18 +41,16 @@ public class YahooProcessor implements PageProcessor {
             }
 
             // 下一页链接
-            // 页面多于2个不再爬取
-            Map<String,Object> extras = page.getRequest().getExtras();
-            int currentPage = (int)extras.get("page");
-            if (currentPage < 2)
-            {
+            // 页面多于5个不再爬取
+            Map<String, Object> extras = page.getRequest().getExtras();
+            int currentPage = (int) extras.get("page");
+            if (currentPage < 5) {
                 extras.put("page", currentPage + 1);
                 Request request = new Request();
                 request.setUrl(nextPage);
                 request.setExtras(extras);
                 page.addTargetRequest(request);
             }
-
 
 
         } else {
@@ -70,8 +68,12 @@ public class YahooProcessor implements PageProcessor {
                 question = html.xpath("//span[@class='ya-q-text']").get();
             }
 
-            List<String> fragments = reConstruct(title, question, answers);
-            List<String> fragmentsPureText = reConstruct(title_p, question_p, answers_p);
+            List<String> fragments = new ArrayList<>();
+            List<String> fragmentsPureText = new ArrayList<>();
+            if (answers.size() > 0) {
+                fragments.add(title + "\n" + question + "\n" + answers.get(0));
+                fragmentsPureText.add(title_p + "\n" + question_p + "\n" + answers_p.get(0));
+            }
             FragmentContent fragmentContent = new FragmentContent(fragments, fragmentsPureText);
             page.putField("fragmentContent", fragmentContent);
 
