@@ -25,10 +25,10 @@ public class TopicEnExtract {
     private static ZHConverter converter = ZHConverter.getInstance(ZHConverter.SIMPLIFIED);// 转化为简体中文
 
     public static void main(String[] args) throws Exception {
-        String url = "https://en.wikipedia.org/wiki/Category:Data_structures";
-        String html = SpiderUtils.seleniumWikiCN(url);
-        Document doc = JsoupDao.parseHtmlText(html);
-        getTopic(doc);
+//        String url = "https://en.wikipedia.org/wiki/Category:Data_structures";
+//        String html = SpiderUtils.seleniumWikiCN(url);
+//        Document doc = JsoupDao.parseHtmlText(html);
+//        getTopic(doc);
 //		getLayer(doc);
     }
 
@@ -41,13 +41,10 @@ public class TopicEnExtract {
     public static List<Term> getTopic(Document doc) {
         List<Term> termList = new ArrayList<>();
         Elements mwPages = doc.select("#mw-pages").select("li");
-        int len = mwPages.size();
-        Log.log(len);
         for (int i = 0; i < mwPages.size(); i++) {
             String url = "https://en.wikipedia.org" + mwPages.get(i).select("a").attr("href");
             String topic = mwPages.get(i).text();
             topic = converter.convert(topic);
-//			Log.log("topic is : " + topic + "  url is : " + url);
             Term term = new Term(topic, url);
             termList.add(term);
         }
@@ -66,13 +63,10 @@ public class TopicEnExtract {
             Log.log("没有下一层子分类...");
         } else {
             Elements mwPages = doc.select("#mw-subcategories").select("li");
-            int len = mwPages.size();
-            Log.log(len);
             for (int i = 0; i < mwPages.size(); i++) {
                 String url = "https://en.wikipedia.org" + mwPages.get(i).select("a").attr("href");
                 String layer = mwPages.get(i).select("a").text();
                 layer = converter.convert(layer);
-//				Log.log("Layer is : " + layer + "  url is : " + url);
                 Term term = new Term(layer, url);
                 termList.add(term);
             }

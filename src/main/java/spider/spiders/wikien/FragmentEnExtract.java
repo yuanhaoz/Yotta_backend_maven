@@ -27,15 +27,15 @@ import java.util.List;
 public class FragmentEnExtract {
 
     public static void main(String[] args) throws Exception {
-        String topicName = "Abstract data type";
-        String topicUrl = "https://en.wikipedia.org/wiki/" + URLEncoder.encode(topicName);
-        String topicHtml = SpiderUtils.seleniumWikiCN(topicUrl);
-        Document doc = JsoupDao.parseHtmlText(topicHtml);
-//		getSpecialContent(doc);
-//		getSummary(inary_treedoc);
-        getFirstContent(doc);
-        getSecondContent(doc);
-        getThirdContent(doc);
+//        String topicName = "Abstract data type";
+//        String topicUrl = "https://en.wikipedia.org/wiki/" + URLEncoder.encode(topicName);
+//        String topicHtml = SpiderUtils.seleniumWikiCN(topicUrl);
+//        Document doc = JsoupDao.parseHtmlText(topicHtml);
+////		getSpecialContent(doc);
+////		getSummary(inary_treedoc);
+//        getFirstContent(doc);
+//        getSecondContent(doc);
+//        getThirdContent(doc);
     }
 
     /**
@@ -46,12 +46,12 @@ public class FragmentEnExtract {
      */
     public static List<AssembleFragmentFuzhu> getSpecialContent(Document doc) {
         List<AssembleFragmentFuzhu> assembleList = new ArrayList<AssembleFragmentFuzhu>();
-        Log.log("------------------ 页面所有内容 ----------------------");
+//        Log.log("------------------ 页面所有内容 ----------------------");
         Elements para = doc.select("div#mw-content-text");
         if (para.size() != 0) {
             String con = para.get(0).html();
             String conPureText = para.get(0).text();
-            Log.log(conPureText);
+//            Log.log(conPureText);
             AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu("摘要", con, 1, conPureText);
             assembleList.add(assemble);
         }
@@ -66,7 +66,7 @@ public class FragmentEnExtract {
      */
     public static List<AssembleFragmentFuzhu> getSummary(Document doc) {
         List<AssembleFragmentFuzhu> assembleList = new ArrayList<AssembleFragmentFuzhu>();
-        Log.log("------------------ 摘要内容 ----------------------");
+//        Log.log("------------------ 摘要内容 ----------------------");
         LinkedList<Element> list = getNodes(doc);
         String summary = "";
         String summaryPureText = "";
@@ -98,7 +98,7 @@ public class FragmentEnExtract {
             if (!child.text().contains("The main article")) { // 不保存多余信息
                 summary = child.html();
                 summaryPureText = child.text();
-                Log.log("Abstract" + "--->" + child.text());
+//                Log.log("Abstract" + "--->" + child.text());
                 AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu("Abstract", summary, 1, summaryPureText);
                 assembleList.add(assemble);
             }
@@ -136,7 +136,7 @@ public class FragmentEnExtract {
             return null;
         }
 
-        Log.log("------------------ 三级标题内容 ----------------------");
+//        Log.log("------------------ 三级标题内容 ----------------------");
         /**
          * 获取每个三级标题的内容，为该标题与相邻标题下标之间的节点内容
          */
@@ -149,7 +149,7 @@ public class FragmentEnExtract {
                     String contentPureText = "";
                     int begin = allTitleIndex.get(i);
                     int end = allTitleIndex.get(i + 1);
-                    Log.log(title + " ---> " + begin + "," + end);
+//                    Log.log(title + " ---> " + begin + "," + end);
                     for (int k = begin + 1; k < end; k++) {
                         Element node = nodes.get(k);
                         if (node.text().length() > Config.TEXTLENGTH) {
@@ -158,7 +158,7 @@ public class FragmentEnExtract {
 //						content = Config.converter.convert(content);
                             AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 3, contentPureText);
                             assembleList.add(assemble);
-                            Log.log(node.text());
+//                            Log.log(node.text());
                         }
                     }
                 }
@@ -175,7 +175,7 @@ public class FragmentEnExtract {
                 String content = "";
                 String contentPureText = "";
                 int begin = allTitleIndex.get(len - 1);
-                Log.log(title + " ---> " + begin + "," + (nodes.size() - 1));
+//                Log.log(title + " ---> " + begin + "," + (nodes.size() - 1));
                 for (int k = begin + 1; k < nodes.size(); k++) {
                     Element node = nodes.get(k);
                     if (node.text().length() > Config.TEXTLENGTH) {
@@ -188,7 +188,7 @@ public class FragmentEnExtract {
 //					}
                         AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 3, contentPureText);
                         assembleList.add(assemble);
-                        Log.log(node.text());
+//                        Log.log(node.text());
                     }
                 }
             }
@@ -226,7 +226,7 @@ public class FragmentEnExtract {
             return null;
         }
 
-        Log.log("------------------ 二级标题内容 ----------------------");
+//        Log.log("------------------ 二级标题内容 ----------------------");
         /**
          * 获取每个二级标题的内容，为该标题与相邻标题下标之间的节点内容
          */
@@ -239,7 +239,7 @@ public class FragmentEnExtract {
                     String contentPureText = "";
                     int begin = allTitleIndex.get(i);
                     int end = allTitleIndex.get(i + 1);
-                    Log.log(title + " ---> " + begin + "," + end);
+//                    Log.log(title + " ---> " + begin + "," + end);
                     for (int k = begin + 1; k < end; k++) {
                         Element node = nodes.get(k);
                         if (node.text().length() > Config.TEXTLENGTH) {
@@ -248,7 +248,7 @@ public class FragmentEnExtract {
 //						content = Config.converter.convert(content);
                             AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 2, contentPureText);
                             assembleList.add(assemble);
-                            Log.log(node.text());
+//                            Log.log(node.text());
                         }
                     }
                 }
@@ -265,7 +265,7 @@ public class FragmentEnExtract {
                 String content = "";
                 String contentPureText = "";
                 int begin = allTitleIndex.get(len - 1);
-                Log.log(title + " ---> " + begin + "," + (nodes.size() - 1));
+//                Log.log(title + " ---> " + begin + "," + (nodes.size() - 1));
                 for (int k = begin + 1; k < nodes.size(); k++) {
                     Element node = nodes.get(k);
                     if (node.text().length() > Config.TEXTLENGTH) {
@@ -278,7 +278,7 @@ public class FragmentEnExtract {
 //					}
                         AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 2, contentPureText);
                         assembleList.add(assemble);
-                        Log.log(node.text());
+//                        Log.log(node.text());
                     }
                 }
             }
@@ -307,7 +307,7 @@ public class FragmentEnExtract {
          */
         int len = firstTitle.size();
         int indexLen = firstTitleIndex.size();
-        Log.log("一级标题个数和一级标题下标个数：" + len + "," + indexLen);
+//        Log.log("一级标题个数和一级标题下标个数：" + len + "," + indexLen);
         if (len > indexLen) {
             len = indexLen;
         }
@@ -316,7 +316,7 @@ public class FragmentEnExtract {
             return null;
         }
 
-        Log.log("------------------ 一级标题内容 ----------------------");
+//        Log.log("------------------ 一级标题内容 ----------------------");
 
         /**
          * 获取每个一级标题的内容，为该标题与相邻标题下标之间的节点内容
@@ -327,7 +327,7 @@ public class FragmentEnExtract {
             String contentPureText = "";
             int begin = firstTitleIndex.get(i);
             int end = firstTitleIndex.get(i + 1);
-            Log.log(title + " ---> " + begin + "," + end);
+//            Log.log(title + " ---> " + begin + "," + end);
             for (int j = begin + 1; j < end; j++) {
                 Element node = nodes.get(j);
                 if (node.text().length() > Config.TEXTLENGTH) {
@@ -335,7 +335,7 @@ public class FragmentEnExtract {
                     contentPureText = node.text();
                     AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 1, contentPureText);
                     assembleList.add(assemble);
-                    Log.log(node.text());
+//                    Log.log(node.text());
                 }
             }
         }
@@ -347,7 +347,7 @@ public class FragmentEnExtract {
         String content = "";
         String contentPureText = "";
         int begin = firstTitleIndex.get(len - 1);
-        Log.log(title + " ---> " + begin + "," + (nodes.size() - 1));
+//        Log.log(title + " ---> " + begin + "," + (nodes.size() - 1));
         for (int j = begin + 1; j < nodes.size(); j++) {
             Element node = nodes.get(j);
             if (node.text().length() > Config.TEXTLENGTH) {
@@ -355,7 +355,7 @@ public class FragmentEnExtract {
                 contentPureText = node.text();
                 AssembleFragmentFuzhu assemble = new AssembleFragmentFuzhu(title, content, 1, contentPureText);
                 assembleList.add(assemble);
-                Log.log(node.text());
+//                Log.log(node.text());
             }
         }
         return assembleList;
@@ -396,10 +396,10 @@ public class FragmentEnExtract {
      * @param titleIndex
      */
     public static void compareTitleIndex(LinkedList<String> title, LinkedList<Integer> titleIndex) {
-        Log.log("------------------ compare title and index ------------------");
+//        Log.log("------------------ compare title and index ------------------");
         // 读取一下标题的下标，确认是否正确
-        Log.log("title size is : " + title.size());
-        Log.log("titleIndex size is : " + titleIndex.size());
+//        Log.log("title size is : " + title.size());
+//        Log.log("titleIndex size is : " + titleIndex.size());
         // 比较标题链表和对应的下标链表的大小是否相同，原则上是相同的，不相同说明网页存在问题等。。。
         int len = title.size();
         int indexLen = titleIndex.size();
@@ -407,12 +407,12 @@ public class FragmentEnExtract {
             len = indexLen;
         }
         if (len != indexLen) {
-            Log.log("+++++++++++++++++++ title don't suit index +++++++++++++++++++");
+//            Log.log("+++++++++++++++++++ title don't suit index +++++++++++++++++++");
         }
         for (int i = 0; i < len; i++) {
             String tit = title.get(i);
             int index = titleIndex.get(i);
-            Log.log(tit + " ---> " + index);
+//            Log.log(tit + " ---> " + index);
         }
     }
 
@@ -560,7 +560,7 @@ public class FragmentEnExtract {
             }
 //			Log.log("post time is : " + time);
         } else {
-            Log.log("constructKGByDomainName time has some bugs ...");
+//            Log.log("constructKGByDomainName time has some bugs ...");
         }
         return time;
     }
@@ -605,13 +605,13 @@ public class FragmentEnExtract {
          * 获取标题
          */
         Elements titles = doc.select("div#toc").select("li");
-        Log.log(titles.size());
+//        Log.log(titles.size());
         if (titles.size() != 0) {
             for (int i = 0; i < titles.size(); i++) {
                 String index = titles.get(i).child(0).child(0).text();
                 String text = titles.get(i).child(0).child(1).text();
                 text = Config.converter.convert(text);
-                Log.log(index + " " + text);
+//                Log.log(index + " " + text);
                 indexs.add(index);
                 facets.add(text);
                 results.add(text);
@@ -620,7 +620,7 @@ public class FragmentEnExtract {
             /**
              * 将二级/三级标题全部匹配到对应的一级标题
              */
-            Log.log("--------------------------------------------");
+//            Log.log("--------------------------------------------");
             for (int i = 0; i < indexs.size(); i++) {
                 String index = indexs.get(i);
                 if (index.contains(".")) {
@@ -638,14 +638,14 @@ public class FragmentEnExtract {
             /**
              * 打印最新的标题信息，确定更新二级/三级标题成功
              */
-            Log.log("--------------------------------------------");
+//            Log.log("--------------------------------------------");
             for (int i = 0; i < facets.size(); i++) {
                 relation.put(facets.get(i), results.get(i));
-                Log.log(indexs.get(i) + "-->" + facets.get(i) + "-->" + results.get(i));
+//                Log.log(indexs.get(i) + "-->" + facets.get(i) + "-->" + results.get(i));
             }
 
         } else {
-            Log.log("该主题没有目录，不是目录结构，直接爬取 -->摘要<-- 信息");
+//            Log.log("该主题没有目录，不是目录结构，直接爬取 -->摘要<-- 信息");
         }
 
         return relation;
@@ -674,8 +674,36 @@ public class FragmentEnExtract {
                 valueLength += 1;
             }
         }
-        Log.log(valueLength);
+//        Log.log(valueLength);
         return valueLength;
+    }
+
+    /**
+     * 判断分面内容是否包含最后一个多余的链接
+     *
+     * @return
+     */
+    public static Boolean judgeBadText(AssembleFragmentFuzhu assemble) {
+        Boolean exist = false;
+        String facetContent = assemble.getFacetContentPureText();
+        facetContent = facetContent.toLowerCase();
+        String badTxt1 = "see also";
+        String badTxt2 = "reference";
+        String badTxt3 = "external link";
+        String badTxt4 = "further reading";
+        String badTxt5 = "notes";
+        String badTxt6 = "citations";
+        String badTxt7 = "[edit]";
+        String badTxt8 = "Wikimedia";
+        String badTxt9 = "Wikibooks";
+        if (facetContent.contains(badTxt1) || facetContent.contains(badTxt2)
+                || facetContent.contains(badTxt3) || facetContent.contains(badTxt4)
+                || facetContent.contains(badTxt5) || facetContent.contains(badTxt6)
+                || facetContent.contains(badTxt7) || facetContent.contains(badTxt8)
+                || facetContent.contains(badTxt9)) {
+            exist = true;
+        }
+        return exist;
     }
 
 

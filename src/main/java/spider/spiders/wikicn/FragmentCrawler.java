@@ -91,7 +91,7 @@ public class FragmentCrawler {
 		/**
 		 * 保存主题间的上下位关系
 		 */
-		FragmentCrawlerDAO.getDependenceByClassName(domainName);
+		FragmentCrawlerDAO.getDependenceByClassName(domainName, false);
 
 		/**
 		 * 生成gephi文件

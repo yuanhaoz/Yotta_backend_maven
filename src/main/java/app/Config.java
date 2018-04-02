@@ -21,7 +21,7 @@ public class Config {
     /**
      * Mysql 配置
      */
-    //public static String DBNAME = "yotta_create";
+    //public static String DBNAME = "yotta_create_test";
     public static String DBNAME = "yotta";
     public static String HOST = "localhost";
     public static String USERNAME = "root";
@@ -77,6 +77,7 @@ public class Config {
      * 爬虫
      */
     public static ZHConverter converter = ZHConverter.getInstance(ZHConverter.SIMPLIFIED);// 转化为简体中文
-    public static int TEXTLENGTH = 20; // 保存文本最短长度
+    public static int TEXTLENGTH = 50; // 保存文本最短长度
+    public static int THREAD = 3; // webmagic框架爬虫的线程数，不要太多，否则会被禁止
 
 }

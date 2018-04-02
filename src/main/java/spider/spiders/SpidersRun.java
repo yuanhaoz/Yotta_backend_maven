@@ -53,20 +53,9 @@ public class SpidersRun {
             // 如果domain表已经有这门课程，就不爬取这门课程的数据，没有就爬取
             if (!hasSpidered) {
                 Log.log("domain表格没有这门课程，开始爬取课程：" + domain);
-                String domainName = domain.getClassName();
-                // 存储领域
-                TopicEnCrawler.storeDomain(domain);
-                // 存储主题
-                TopicEnCrawler.storeTopic(domain);
-                // 存储分面和碎片
-                FragmentEnCrawler.storeKGByDomainName(domainName);
-
-                // 知乎等中文网站
-                spiderFragment(domain);
-
-                // Quora等英文网站
-
-
+                constructKGByDomainNameEn(domain);
+//                spiderFragment(domain);
+                spiderFragmentEn(domain);
             } else {
                 Log.log("domain表格有这门课程，不需要爬取课程：" + domain);
             }
@@ -94,7 +83,7 @@ public class SpidersRun {
     }
 
     /**
-     * 爬取一门课程：主题、主题上下位关系、分面、分面关系、主题认知关系(gephi文件)、中文维基碎片
+     * 爬取一门课程：主题、主题上下位关系、分面、分面关系、主题认知关系(gephi文件)、碎片（中文维基）
      *
      * @param domain 课程
      */
@@ -106,6 +95,21 @@ public class SpidersRun {
         TopicCrawler.storeTopic(domain);
         // 存储分面和碎片
         FragmentCrawler.storeKGByDomainName(domainName);
+    }
+
+    /**
+     * 爬取一门课程：主题、主题上下位关系、分面、分面关系、主题认知关系(gephi文件)、碎片（英文维基）
+     *
+     * @param domain 课程
+     */
+    public static void constructKGByDomainNameEn(Domain domain) throws Exception {
+        String domainName = domain.getClassName();
+        // 存储领域
+        TopicEnCrawler.storeDomain(domain);
+        // 存储主题
+        TopicEnCrawler.storeTopic(domain);
+        // 存储分面和碎片
+        FragmentEnCrawler.storeKGByDomainName(domainName);
     }
 
     /**
@@ -139,6 +143,16 @@ public class SpidersRun {
         } else {
             Log.log("数据已经爬取：" + domainName + "，csdn");
         }
+
+    }
+
+    /**
+     * 爬取一门课程：碎片（数据源为：Quora、Stackoverflow、Yahoo、Twitter）
+     *
+     * @param domain 课程
+     */
+    public static void spiderFragmentEn(Domain domain) {
+        String domainName = domain.getClassName();
 
         //爬取Stackoverflow
         if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Stackoverflow")) {

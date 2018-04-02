@@ -57,7 +57,7 @@ public class CSDNProcessor implements PageProcessor{
         }
         YangKuanSpider.create(new CSDNProcessor())
                 .addRequests(requests)
-                .thread(5)
+                .thread(Config.THREAD)
                 .addPipeline(new SqlPipeline())
                 .addPipeline(new ConsolePipeline())
                 .runAsync();

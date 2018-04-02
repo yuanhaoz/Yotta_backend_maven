@@ -9,6 +9,7 @@ import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.Spider;
+import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Html;
 import utils.Translate;
@@ -20,7 +21,7 @@ import java.util.Map;
 public class StackoverflowProcessor implements PageProcessor {
     private Site site = Site.me().setRetryTimes(3).setSleepTime(1000).setTimeOut(10000);
     //判断是不是目录
-    private String content_regex = ".+?search.+";
+    private String content_regex = ".+?search\\?q=.+";
 
     @Override
     public void process(Page page) {
@@ -34,8 +35,7 @@ public class StackoverflowProcessor implements PageProcessor {
             // 下一页
             String next = html.xpath("//a[@rel='next']/@href").get();
             // 加入队列
-            for (String str :
-                    questions) {
+            for (String str : questions) {
                 Request request = new Request();
                 request.setUrl(domain + str);
                 // page.addTargetRequest(domain + str);
@@ -56,8 +56,6 @@ public class StackoverflowProcessor implements PageProcessor {
             List<String> fragmentsPureText = reConstruct(title_p, qas_p);
             FragmentContent fragmentContent = new FragmentContent(fragments, fragmentsPureText);
             page.putField("fragmentContent", fragmentContent);
-            
-
 
         }
 
@@ -85,8 +83,9 @@ public class StackoverflowProcessor implements PageProcessor {
 
         YangKuanSpider.create(new StackoverflowProcessor())
                 .addRequests(requests)
-                .thread(5)
+                .thread(Config.THREAD)
                 .addPipeline(new SqlPipeline())
+//                .addPipeline(new ConsolePipeline())
                 .runAsync();
 
     }

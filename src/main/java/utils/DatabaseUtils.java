@@ -21,11 +21,15 @@ import java.util.Map;
 public class DatabaseUtils {
 
     public static void main(String[] args) {
-        createTable();
-        deleteBadFragment();
-        updateSourceName();
-        createIndex();
-        deleteDbByClassName();
+//        createTable();
+//        deleteBadFragment();
+//        updateSourceName();
+//        createIndex();
+
+//        String domainName = "Abstract_data_types";
+//        String domainName = "String_data_structures";
+        String domainName = "Source_code_generation";
+        deleteDbByClassName(domainName);
     }
 
     /**
@@ -313,8 +317,8 @@ public class DatabaseUtils {
         mysql.closeconnection();
     }
 
-    public static void deleteDbByClassName() {
-        String domainName = "理论物理学家";
+    public static void deleteDbByClassName(String domainName) {
+//        String domainName = "理论物理学家";
         // 删除数据库中这门课程的数据
         List<String> tableList = new ArrayList<>();
         tableList.add(Config.DOMAIN_TABLE);

@@ -462,7 +462,7 @@ public class MysqlReadWriteDAO {
                 paramsAssemble.add(facet);
                 paramsAssemble.add(facetLayer);
                 paramsAssemble.add(domain);
-                paramsAssemble.add("中文维基");
+                paramsAssemble.add("英文维基");
                 try {
                     mysql.addDeleteModify(sqlAssemble, paramsAssemble);
                 } catch (Exception e) {
