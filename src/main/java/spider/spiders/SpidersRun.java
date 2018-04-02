@@ -5,6 +5,10 @@ import domain.bean.Domain;
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import spider.spiders.baiduzhidao.BaiduZhidaoProcessor;
 import spider.spiders.csdn.CSDNProcessor;
 import spider.spiders.quora.QuoraProcessor;
@@ -17,10 +21,13 @@ import spider.spiders.wikien.FragmentEnCrawler;
 import spider.spiders.wikien.TopicEnCrawler;
 import spider.spiders.zhihu.ZhihuProcessor;
 import utils.DatabaseUtils;
+import utils.JsoupDao;
 import utils.Log;
+import utils.SpiderUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +52,7 @@ public class SpidersRun {
     public static void spiderEn() throws Exception {// 如果数据库中表格不存在，先新建数据库表格
         DatabaseUtils.createTable();
         // 爬取多门课程
-        String excelPath = SpidersRun.class.getClassLoader().getResource("").getPath() + "domains-en.xls";
+        String excelPath = SpidersRun.class.getClassLoader().getResource("").getPath() + "domains-en-test1.xls";
         List<Domain> domainList = getDomainFromExcel(excelPath);
         for (int i = 0; i < domainList.size(); i++) {
             Domain domain = domainList.get(i);
