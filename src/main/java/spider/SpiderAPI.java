@@ -838,7 +838,8 @@ public class SpiderAPI {
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
     public static Response createFragment(
-            @FormParam("FragmentContent") String FragmentContent
+            @FormParam("FragmentContent") String FragmentContent,
+            @FormParam("UserName") String UserName
     ) {
 //		Response response = null;
         /**
@@ -847,12 +848,13 @@ public class SpiderAPI {
         try {
             boolean result = false;
             mysqlUtils mysql = new mysqlUtils();
-            String sql = "insert into " + Config.FRAGMENT + "(FragmentContent,FragmentScratchTime) values(?,?);";
+            String sql = "insert into " + Config.FRAGMENT + "(FragmentContent,FragmentScratchTime,UserName) values(?,?,?);";
             Date d = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             List<Object> params = new ArrayList<Object>();
             params.add(FragmentContent);
             params.add(sdf.format(d));
+            params.add(UserName);
             try {
                 result = mysql.addDeleteModify(sql, params);
             } catch (Exception e) {
@@ -879,14 +881,16 @@ public class SpiderAPI {
             @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response getFragment() {
+    public static Response getFragment(@QueryParam("UserName") String UserName) {
         Response response = null;
         /**
          * 获得碎片信息
          */
         mysqlUtils mysql = new mysqlUtils();
-        String sql = "select * from " + Config.FRAGMENT;
+        String sql = "select * from " + Config.FRAGMENT + " where UserName=?";
         List<Object> params = new ArrayList<Object>();
+        params.add(UserName);
+
         try {
             List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
             response = Response.status(200).entity(results).build();
