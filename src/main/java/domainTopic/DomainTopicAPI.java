@@ -172,7 +172,7 @@ public class DomainTopicAPI {
 
     @GET
     @Path("/getDomainTerm")
-    @ApiOperation(value = "获得指定领域下的主题", notes = "获得指定领域下所有主题")
+        @ApiOperation(value = "获得指定课程下的主题", notes = "获得指定课程下所有主题")
     @ApiResponses(value = {
             @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
             @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
