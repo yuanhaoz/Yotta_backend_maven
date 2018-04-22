@@ -23,7 +23,10 @@ import utils.mysqlUtils;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -428,7 +431,7 @@ public class SpiderAPI {
             String topicName = topicNameArray[i];
             mysqlUtils mysql = new mysqlUtils();
             String sql = "select * from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where ClassName=? and TermName=?";
-            List<Object> params = new ArrayList<Object>();
+            List<Object> params = new ArrayList<>();
             params.add(className);
             params.add(topicName);
             try {

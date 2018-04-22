@@ -531,13 +531,24 @@ public class FragmentEnExtract {
      * @return
      */
     public static Boolean delTitle(String title) {
-//		Boolean useless = false;
-        Boolean useless = title.equals("注释与参考文献")
-                || title.equals("参考文献") || title.equals("外部链接") || title.equals("参考资料")
-                || title.equals("外部连结") || title.equals("相关条目")
-                || title.equals("参见") || title.equals("另见") || title.equals("参看")
-                || title.equals("参考") || title.equals("参照") || title.equals("参阅")
-                || title.equals("注释") || title.equals("延伸阅读"); // 判断标题是否为无用的
+//        String badTxt1 = "see also";
+//        String badTxt2 = "reference";
+//        String badTxt3 = "external link";
+//        String badTxt4 = "further reading";
+//        String badTxt5 = "notes";
+//        String badTxt6 = "citations";
+//        String badTxt7 = "[edit]";
+//        String badTxt8 = "Wikimedia";
+//        String badTxt9 = "Wikibooks";
+        Boolean useless = title.equalsIgnoreCase("see also") ||
+                title.equalsIgnoreCase("reference") ||
+                title.equalsIgnoreCase("external link") ||
+                title.equalsIgnoreCase("further reading") ||
+                title.equalsIgnoreCase("notes") ||
+                title.equalsIgnoreCase("citations") ||
+                title.equalsIgnoreCase("[edit]") ||
+                title.equalsIgnoreCase("Wikimedia") ||
+                title.equalsIgnoreCase("Wikibooks"); // 判断标题是否为无用的
         return useless;
     }
 

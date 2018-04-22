@@ -21,16 +21,34 @@ import java.util.Map;
 public class DatabaseUtils {
 
     public static void main(String[] args) {
-//        createTable();
-//        deleteBadFragment();
-//        updateSourceName();
-//        createIndex();
-
 //        String domainName = "Abstract_data_types";
 //        String domainName = "String_data_structures";
 //        String domainName = "Source_code_generation";
-        String domainName = "Algorithms_and_data_structures";
-        deleteDbByClassName(domainName);
+//        String domainName = "test";
+//        deleteDbByClassName(domainName);
+
+        testGetGeneratedKeys();
+    }
+
+    /**
+     * 获取数据库表格自增字段的值
+     */
+    public static void testGetGeneratedKeys() {
+        int generatedKey = 0;
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "insert into " + Config.DOMAIN_TABLE
+                + "(ClassName, SubjectName) " +
+                "values (?,?)";
+        List<Object> params = new ArrayList<Object>();
+        params.add("testClass");
+        params.add("testSubject");
+        try {
+            generatedKey = mysql.addGeneratedKey(sql, params);
+            System.out.println(generatedKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mysql.closeconnection();
     }
 
     /**
@@ -50,6 +68,38 @@ public class DatabaseUtils {
                 "  `FacetLayer` int(20) DEFAULT NULL COMMENT '分面层数',\n" +
                 "  `ClassName` varchar(100) DEFAULT NULL COMMENT '课程名',\n" +
                 "  `SourceName` varchar(100) DEFAULT NULL COMMENT '数据源名',\n" +
+                "  PRIMARY KEY (`FragmentID`),\n" +
+                "  KEY `assembleFragment_ClassName_TermName_FacetName` (`ClassName`,`TermName`,`FacetName`)\n" +
+                ") ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;";
+        String sqlAssembleFragmentQuestion = "CREATE TABLE IF NOT EXISTS `assemble_fragment_question` (\n" +
+                "  `FragmentID` int(20) NOT NULL AUTO_INCREMENT COMMENT '碎片ID',\n" +
+                "  `FragmentContent` longtext NOT NULL COMMENT '碎片内容（包含文本和图片，html形式）',\n" +
+                "  `Text` longtext COMMENT '碎片内容（只有文本，纯文本形式）',\n" +
+                "  `FragmentScratchTime` datetime DEFAULT NULL COMMENT '碎片爬取时间',\n" +
+                "  `TermID` int(20) DEFAULT NULL COMMENT '主题ID',\n" +
+                "  `TermName` varchar(100) DEFAULT NULL COMMENT '主题名',\n" +
+                "  `FacetName` varchar(100) DEFAULT NULL COMMENT '分面名',\n" +
+                "  `FacetLayer` int(20) DEFAULT NULL COMMENT '分面层数',\n" +
+                "  `ClassName` varchar(100) DEFAULT NULL COMMENT '课程名',\n" +
+                "  `SourceName` varchar(100) DEFAULT NULL COMMENT '数据源名',\n" +
+                "  `question_url` varchar(255) DEFAULT NULL COMMENT '问题链接',\n" +
+                "  `question_title` longtext COMMENT '问题标题(带html标签)',\n" +
+                "  `question_title_pure` longtext COMMENT '问题标题(纯文本)',\n" +
+                "  `question_body` longtext COMMENT '问题正文(带html标签)',\n" +
+                "  `question_body_pure` longtext COMMENT '问题正文(纯文本)',\n" +
+                "  `question_best_answer` longtext COMMENT '问题最佳答案(带html标签)',\n" +
+                "  `question_best_answer_pure` longtext COMMENT '问题最佳答案(纯文本)',\n" +
+                "  `question_score` varchar(100) DEFAULT NULL COMMENT '问题分数',\n" +
+                "  `question_answerCount` varchar(100) DEFAULT NULL COMMENT '问题回答数',\n" +
+                "  `question_viewCount` varchar(100) DEFAULT NULL COMMENT '问题浏览数',\n" +
+                "  `asker_name` varchar(100) DEFAULT NULL COMMENT '提问者姓名',\n" +
+                "  `asker_url` varchar(100) DEFAULT NULL COMMENT '提问者个人主页链接',\n" +
+                "  `asker_reputation` varchar(100) DEFAULT NULL COMMENT '提问者声望值',\n" +
+                "  `asker_answerCount` varchar(100) DEFAULT NULL COMMENT '提问者回答总数',\n" +
+                "  `asker_questionCount` varchar(100) DEFAULT NULL COMMENT '提问者问题总数',\n" +
+                "  `asker_viewCount` varchar(100) DEFAULT NULL COMMENT '提问者浏览总数',\n" +
+                "  `asker_best_answer_rate` varchar(100) DEFAULT NULL COMMENT '提问者最佳回答率',\n" +
+                "  `question_quality_label` varchar(100) DEFAULT NULL COMMENT '问题质量标签',\n" +
                 "  PRIMARY KEY (`FragmentID`),\n" +
                 "  KEY `assembleFragment_ClassName_TermName_FacetName` (`ClassName`,`TermName`,`FacetName`)\n" +
                 ") ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;";
@@ -144,6 +194,7 @@ public class DatabaseUtils {
                 "  `FragmentID` int(20) NOT NULL AUTO_INCREMENT COMMENT '碎片ID',\n" +
                 "  `FragmentContent` longtext NOT NULL COMMENT '碎片内容',\n" +
                 "  `FragmentScratchTime` datetime DEFAULT NULL COMMENT '碎片爬取时间',\n" +
+                "  `UserName` varchar(255) DEFAULT NULL COMMENT '添加碎片的用户名',\n" +
                 "  PRIMARY KEY (`FragmentID`)\n" +
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8;";
         String sqlSource = "CREATE TABLE IF NOT EXISTS `source` (\n" +
@@ -182,6 +233,7 @@ public class DatabaseUtils {
                 ") ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;";
         try {
             mysql.addDeleteModify(sqlAssembleFragment, params);
+            mysql.addDeleteModify(sqlAssembleFragmentQuestion, params);
             mysql.addDeleteModify(sqlDependncey, params);
             mysql.addDeleteModify(sqlDomain, params);
             mysql.addDeleteModify(sqlDomainLayer, params);
@@ -332,6 +384,7 @@ public class DatabaseUtils {
         tableList.add(Config.FACET_TABLE);
         tableList.add(Config.FACET_RELATION_TABLE);
         tableList.add(Config.ASSEMBLE_FRAGMENT_TABLE);
+        tableList.add(Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE);
         tableList.add(Config.DEPENDENCY);
         for (int i = 0; i < tableList.size(); i++) {
             deleteByTableAndDomain(tableList.get(i), domainName);

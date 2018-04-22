@@ -1,33 +1,36 @@
-package spider.spiders.yahooanswer;
+package spider.spiders.stackoverflow;
 
 import app.Config;
-import spider.spiders.webmagic.bean.FragmentContent;
-import spider.spiders.webmagic.ProcessorSQL;
 import spider.spiders.webmagic.bean.FragmentContentQuestion;
-import spider.spiders.webmagic.pipeline.SqlPipeline;
 import spider.spiders.webmagic.pipeline.SqlQuestionPipeline;
+import spider.spiders.webmagic.ProcessorSQL;
 import spider.spiders.webmagic.spider.YangKuanSpider;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
+import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
 import us.codecraft.webmagic.selector.Html;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
-public class YahooProcessor implements PageProcessor {
+public class StackoverflowQuestionProcessor implements PageProcessor {
 
     private Site site = Site.me()
-            .setRetryTimes(Config.retryTimes)
-            .setRetrySleepTime(Config.retrySleepTime)
-            .setSleepTime(Config.sleepTime)
-            .setTimeOut(Config.timeOut)
+            .setRetryTimes(Config.retryTimesSO)
+            .setRetrySleepTime(Config.retrySleepTimeSO)
+            .setSleepTime(Config.sleepTimeSO)
+            .setTimeOut(Config.timeOutSO)
             .addHeader("User-Agent", Config.userAgent)
+            .addHeader("Origin", Config.originSO)
+            .addHeader("Hosts", Config.hostsSO)
             .addHeader("Accept", "*/*");
 
-    private String content_regex = ".+?search\\?p=.+";
+    // 判断是不是目录
+    private String content_regex = ".+?search\\?q=.+";
 
     @Override
     public Site getSite() {
@@ -37,36 +40,33 @@ public class YahooProcessor implements PageProcessor {
     @Override
     public void process(Page page) {
         Html html = page.getHtml();
-
-        String domain = "https://answers.yahoo.com";
+        String domain = "https://stackoverflow.com";
 
         if (page.getUrl().regex(content_regex).match()) {
             /**
              * 主题页面
              */
-            List<String> qlinks = html.xpath("//a[@class=' lh-17 fz-m']/@href").all();
-            String nextPage = html.xpath("//a[@class='next']/@href").get();
-
-            for (int i = 0; i < qlinks.size(); i++) {
-                System.out.println("问题链接：" + qlinks.get(i));
+            // 每一页的链接
+            List<String> questions = html.xpath("//div[@class='result-link']//a/@href").all();
+            for (int i = 0; i < questions.size(); i++) {
+                System.out.println("问题链接：" + domain + questions.get(i));
             }
-
-            // 内容链接
-            for (String str : qlinks) {
+            // 下一页
+            String next = html.xpath("//a[@rel='next']/@href").get();
+            // 加入队列
+            for (String str : questions) {
                 Request request = new Request();
-                request.setUrl(str);
+                request.setUrl(domain + str);
                 request.setExtras(page.getRequest().getExtras());
                 page.addTargetRequest(request);
             }
-
-            // 下一页链接
-            // 页面多于5个不再爬取
             Map<String, Object> extras = page.getRequest().getExtras();
-            int currentPage = (int) extras.get("page");
+            int currentPage = (int)extras.get("page");
+            // 页面多于5个不再爬取
             if (currentPage < 1) {
                 extras.put("page", currentPage + 1);
                 Request request = new Request();
-                request.setUrl(nextPage);
+                request.setUrl(domain + next);
                 request.setExtras(extras);
                 page.addTargetRequest(request);
             }
@@ -78,39 +78,34 @@ public class YahooProcessor implements PageProcessor {
             String question_url = page.getUrl().toString();
             System.out.println("问题链接：" + question_url);
             // 提问者链接
-            String asker_url = domain + html.xpath("//div[@id='yq-question-detail-profile-img']/a/@href").all().get(0);
+            String asker_url = domain + html.xpath("//div[@class='post-signature owner grid--cell fl0']//div[@class='user-details']//a/@href").all().get(0);
             // 获取问题分数、问题回答数、问题浏览数
-            String question_score = html.xpath("//div[@class='qfollow Mend-10 Fz-13 Fw-n D-ib Cur-p']/span[@class='follow-text']/@data-ya-fc").get();
-            String question_answerCount = html.xpath("//div[@class='Mend-10 Fz-13 Fw-n D-ib']/span/allText()").all().get(1);
-            String question_viewCount = "";
+            String question_score = html.xpath("//div[@class='vote']/span[@class='vote-count-post ']/text()").get();
+            String question_answerCount = html.xpath("//div[@id='answers-header']//h2/@data-answercount").get();
+            String question_viewCount = html.xpath("//table[@id='qinfo']//p[@class='label-key']/allText()").all().get(3);
             System.out.println("score: " + question_score + ", answer: " + question_answerCount + ", view: " + question_viewCount);
-            // 雅虎问答的标题
-            String question_title_pure = html.xpath("//h1[@itemprop='name']/text()").get();
-            String question_title = html.xpath("//h1[@itemprop='name']").get();
-            // 问题描述
-            String question_body_pure = html.xpath("//span[@class='D-n ya-q-full-text Ol-n']/text()").get();
-            String question_body = html.xpath("//span[@class='D-n ya-q-full-text Ol-n']").get();
-            if (question_body_pure == null || question_body == null) {
-                question_body_pure = html.xpath("//span[@class='ya-q-text']/text()").get();
-                question_body = html.xpath("//span[@class='ya-q-text']").get();
-            }
-            // 答案
+            // 获取问题标题、问题正文、问题最佳回答
+            String title = html.xpath("//div[@id='question-header']/h1/a").get();
+            String title_p = html.xpath("//div[@id='question-header']/h1/a/text()").get();
+            // 第一个是问题描述 其余的是答案
+            List<String> qas = html.xpath("//div[@class='post-text']").all();
+            List<String> qas_p = html.xpath("//div[@class='post-text']/allText()").all();
+            String question_body = "";
+            String question_body_p = "";
             String question_best_answer = "";
-            String question_best_answer_pure = "";
-            List<String> answers_p = html.xpath("//span[@class='ya-q-full-text'][@itemprop]/text()").all();
-            List<String> answers = html.xpath("//span[@class='ya-q-full-text'][@itemprop]").all();
-            // 知识森林碎片
+            String question_best_answer_p = "";
+            if (qas.size() > 0) {  // 存在正文
+                question_body = qas.get(0);
+                question_body_p = qas_p.get(0);
+                if (qas.size() > 1) {  // 存在最佳回答
+                    question_best_answer = qas.get(1);
+                    question_best_answer_p = qas_p.get(1);
+                }
+            }
             List<String> fragments = new ArrayList<>();
             List<String> fragmentsPureText = new ArrayList<>();
-            if (answers.size() > 0) {
-                question_best_answer = answers.get(0);
-                question_best_answer_pure = answers_p.get(0);
-                fragments.add(question_title + "\n" + question_body + "\n" + question_best_answer);
-                fragmentsPureText.add(question_title_pure + "\n" + question_body_pure + "\n" + question_best_answer_pure);
-            } else {
-                fragments.add(question_title + "\n" + question_body);
-                fragmentsPureText.add(question_title_pure + "\n" + question_body_pure);
-            }
+            fragments.add(title + "\n" + question_body + "\n" + question_best_answer);
+            fragmentsPureText.add(title_p + "\n" + question_body_p + "\n" + question_best_answer_p);
 
             // 获取extras中的FragmentContentQuestion对象信息
             FragmentContentQuestion fragmentContentQuestion = new FragmentContentQuestion();
@@ -119,23 +114,21 @@ public class YahooProcessor implements PageProcessor {
             fragmentContentQuestion.setFragments(fragments);
             fragmentContentQuestion.setFragmentsPureText(fragmentsPureText);
             fragmentContentQuestion.setQuestion_url(question_url);
-            fragmentContentQuestion.setQuestion_title(question_title);
-            fragmentContentQuestion.setQuestion_title_pure(question_title_pure);
+            fragmentContentQuestion.setQuestion_title(title);
+            fragmentContentQuestion.setQuestion_title_pure(title_p);
             fragmentContentQuestion.setQuestion_body(question_body);
-            fragmentContentQuestion.setQuestion_body_pure(question_body_pure);
+            fragmentContentQuestion.setQuestion_body_pure(question_body_p);
             fragmentContentQuestion.setQuestion_best_answer(question_best_answer);
-            fragmentContentQuestion.setQuestion_best_answer_pure(question_best_answer_pure);
+            fragmentContentQuestion.setQuestion_best_answer_pure(question_best_answer_p);
             fragmentContentQuestion.setQuestion_score(question_score);
             fragmentContentQuestion.setQuestion_answerCount(question_answerCount);
             fragmentContentQuestion.setQuestion_viewCount(question_viewCount);
             fragmentContentQuestion.setAsker_url(asker_url);
             page.putField("fragmentContentQuestion", fragmentContentQuestion);
-
         }
-
     }
 
-    public void YahooCrawl(String courseName) {
+    public void StackoverflowCrawl(String courseName) {
         //1.获取分面名
         ProcessorSQL processorSQL = new ProcessorSQL();
         List<Map<String, Object>> allFacetsInformation = processorSQL.getAllFacets(Config.FACET_TABLE, courseName);
@@ -143,19 +136,19 @@ public class YahooProcessor implements PageProcessor {
         List<Request> requests = new ArrayList<>();
         for (Map<String, Object> facetInformation : allFacetsInformation) {
             Request request = new Request();
-            String url = "https://answers.search.yahoo.com/search?p="
+            String url = "https://stackoverflow.com/search?q="
 //                    + facetInformation.get("ClassName") + " "
                     + facetInformation.get("TermName") + " "
                     + facetInformation.get("FacetName");
-            //添加链接;设置额外信息
-            facetInformation.put("SourceName", "Yahoo");
+            //添加链接，设置额外信息
             facetInformation.put("page", 1);
+            facetInformation.put("SourceName", "Stackoverflow");
             requests.add(request.setUrl(url).setExtras(facetInformation));
         }
 
-        YangKuanSpider.create(new YahooProcessor())
+        YangKuanSpider.create(new StackoverflowQuestionProcessor())
                 .addRequests(requests)
-                .thread(Config.THREAD)
+                .thread(Config.threadSO)
                 .addPipeline(new SqlQuestionPipeline())
 //                .addPipeline(new ConsolePipeline())
                 .runAsync();
@@ -163,7 +156,7 @@ public class YahooProcessor implements PageProcessor {
     }
 
     public static void main(String[] args) {
-        new YahooProcessor().YahooCrawl("test");
+        new StackoverflowQuestionProcessor().StackoverflowCrawl("test");
     }
 
 }

@@ -5,29 +5,23 @@ import domain.bean.Domain;
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import spider.spiders.baiduzhidao.BaiduZhidaoProcessor;
 import spider.spiders.csdn.CSDNProcessor;
-import spider.spiders.quora.QuoraProcessor;
-import spider.spiders.stackoverflow.StackoverflowProcessor;
+import spider.spiders.stackoverflow.StackoverflowAskerProcessor;
+import spider.spiders.stackoverflow.StackoverflowQuestionProcessor;
 import spider.spiders.wikicn.FragmentCrawler;
 import spider.spiders.wikicn.MysqlReadWriteDAO;
 import spider.spiders.wikicn.TopicCrawler;
+import spider.spiders.yahooanswer.YahooAskerProcessor;
 import spider.spiders.yahooanswer.YahooProcessor;
 import spider.spiders.wikien.FragmentEnCrawler;
 import spider.spiders.wikien.TopicEnCrawler;
 import spider.spiders.zhihu.ZhihuProcessor;
 import utils.DatabaseUtils;
-import utils.JsoupDao;
 import utils.Log;
-import utils.SpiderUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,15 +43,19 @@ public class SpidersRun {
         spiderEn();
     }
 
-    public static void spiderEn() throws Exception {// 如果数据库中表格不存在，先新建数据库表格
+    public static void spiderEn() throws Exception {
+        // 如果数据库中表格不存在，先新建数据库表格
         DatabaseUtils.createTable();
         // 爬取多门课程
         String excelPath = SpidersRun.class.getClassLoader().getResource("").getPath() + "domains-en-test1.xls";
         List<Domain> domainList = getDomainFromExcel(excelPath);
         for (int i = 0; i < domainList.size(); i++) {
             Domain domain = domainList.get(i);
-            boolean hasSpidered = MysqlReadWriteDAO.judgeByClass(Config.DOMAIN_TABLE, domain.getClassName());
+
+//            spiderFragmentEn(domain);
+
             // 如果domain表已经有这门课程，就不爬取这门课程的数据，没有就爬取
+            boolean hasSpidered = MysqlReadWriteDAO.judgeByClass(Config.DOMAIN_TABLE, domain.getClassName());
             if (!hasSpidered) {
                 Log.log("domain表格没有这门课程，开始爬取课程：" + domain);
                 constructKGByDomainNameEn(domain);
@@ -66,11 +64,13 @@ public class SpidersRun {
             } else {
                 Log.log("domain表格有这门课程，不需要爬取课程：" + domain);
             }
+
         }
     }
 
     // 中文网站爬虫
-    public static void spiderCn() throws Exception {// 如果数据库中表格不存在，先新建数据库表格
+    public static void spiderCn() throws Exception {
+        // 如果数据库中表格不存在，先新建数据库表格
         DatabaseUtils.createTable();
         // 爬取多门课程
         String excelPath = SpidersRun.class.getClassLoader().getResource("").getPath() + "domains.xls";
@@ -161,29 +161,33 @@ public class SpidersRun {
     public static void spiderFragmentEn(Domain domain) {
         String domainName = domain.getClassName();
 
-        //爬取Stackoverflow
-        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Stackoverflow")) {
-            StackoverflowProcessor stackoverflowProcessor = new StackoverflowProcessor();
-            stackoverflowProcessor.StackoverflowCrawl(domainName);
-        } else {
-            Log.log("数据已经爬取：" + domainName + "，stackoverflow");
-        }
-
-        //爬取雅虎问答
-        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Yahoo")) {
+        // 爬取雅虎问答：问题页面 + 提问者页面
+        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Yahoo") &&
+                !MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE, domainName, "Yahoo") ) {
+            // 问题页面
             YahooProcessor yahooProcessor = new YahooProcessor();
             yahooProcessor.YahooCrawl(domainName);
+            // 提问者页面
+            YahooAskerProcessor yahooAskerProcessor = new YahooAskerProcessor();
+            yahooAskerProcessor.YahooCrawl(domainName);
         } else {
             Log.log("数据已经爬取：" + domainName + "，yahoo");
         }
 
-        //爬取quora
-        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Quora")) {
-            QuoraProcessor quoraProcessor = new QuoraProcessor();
-            quoraProcessor.quoraAnswerCrawl(domainName);
+
+        // 爬取Stackoverflow：问题页面 + 提问者页面
+        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Stackoverflow") &&
+                !MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE, domainName, "Stackoverflow")) {
+            // 问题页面
+            StackoverflowQuestionProcessor stackoverflowProcessor = new StackoverflowQuestionProcessor();
+            stackoverflowProcessor.StackoverflowCrawl(domainName);
+            // 提问者页面
+            StackoverflowAskerProcessor stackoverflowAskerProcessor = new StackoverflowAskerProcessor();
+            stackoverflowAskerProcessor.StackoverflowCrawl(domainName);
         } else {
-            Log.log("数据已经爬取：" + domainName + "，quora");
+            Log.log("数据已经爬取：" + domainName + "，stackoverflow");
         }
+
     }
 
     /**

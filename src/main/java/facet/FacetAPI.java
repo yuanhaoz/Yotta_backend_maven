@@ -299,7 +299,9 @@ public class FacetAPI {
             @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response getDomainInfo(@DefaultValue("数据结构") @ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName) {
+    public static Response getDomainInfo(
+            @DefaultValue("数据结构") @ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName
+    ) {
         Response response = null;
         /**
          * 获得指定领域下主题分面信息

@@ -91,7 +91,7 @@ public class ProcessorSQL {
      * @param facetTable 分面表
      * @return allFacetsInformation 所有的分面
      * */
-    public List<Map<String, Object>> getAllFacets(String facetTable,String courseName){
+    public List<Map<String, Object>> getAllFacets(String facetTable, String courseName){
         List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
         mysqlUtils mysql = new mysqlUtils();
         String sql = "select * from "+  facetTable +" where ClassName=?";
@@ -106,4 +106,30 @@ public class ProcessorSQL {
         }
         return results;
     }
+
+    /**获取问题信息
+     * @param assembleFragmentQuestionTable 装配好的问题碎片表
+     * @return 问题碎片集合
+     * */
+    public List<Map<String, Object>> getQuestions(
+            String assembleFragmentQuestionTable,
+            String courseName,
+            String sourceName
+    ){
+        List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from "+  assembleFragmentQuestionTable +" where ClassName=? and SourceName=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(courseName);
+        params.add(sourceName);
+        try {
+            results = mysql.returnMultipleResult(sql, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            mysql.closeconnection();
+        }
+        return results;
+    }
+
 }
