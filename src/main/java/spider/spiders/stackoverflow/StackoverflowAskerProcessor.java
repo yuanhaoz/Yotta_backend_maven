@@ -45,6 +45,10 @@ public class StackoverflowAskerProcessor implements PageProcessor {
         String asker_questionCount = html.xpath("//div[@class='stat questions col-3']/span/text()").get();
         List<String> asker_viewCounts = html.xpath("//div[@class='user-links']//li/allText()").all();
         String asker_viewCount = asker_viewCounts.get(asker_viewCounts.size() - 2);
+        asker_reputation = ProcessFeature.processWebsiteNumbers(asker_reputation);
+        asker_answerCount = ProcessFeature.processWebsiteNumbers(asker_answerCount);
+        asker_questionCount = ProcessFeature.processWebsiteNumbers(asker_questionCount);
+        asker_viewCount = ProcessFeature.processAskerView(asker_viewCount);
         System.out.println("提问者姓名: " + asker_name + ", 提问者声望值: " + asker_reputation + ", 提问者回答总数: " + asker_answerCount + ", 提问者提问总数: " + asker_questionCount + ", 提问者浏览总数: " + asker_viewCount);
 
         // 获取extras中的FragmentContentQuestion对象信息
@@ -61,7 +65,8 @@ public class StackoverflowAskerProcessor implements PageProcessor {
     public void StackoverflowCrawl(String courseName) {
         // 获取问题信息
         ProcessorSQL processorSQL = new ProcessorSQL();
-        List<Map<String, Object>> questions = processorSQL.getQuestions(Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE, courseName, "Stackoverflow");
+        List<Map<String, Object>> questions = processorSQL.getQuestions(
+                Config.ASSEMBLE_FRAGMENT_TABLE, Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE, courseName, "Stackoverflow");
         // 添加连接请求
         List<Request> requests = new ArrayList<>();
         for (Map<String, Object> question : questions) {

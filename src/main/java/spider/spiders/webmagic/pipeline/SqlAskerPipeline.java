@@ -31,7 +31,7 @@ public class SqlAskerPipeline implements Pipeline {
                     " asker_answerCount = ?," +
                     " asker_questionCount = ?," +
                     " asker_viewCount = ? " +
-                    " where FragmentID = ?";
+                    " where question_id = ?";
 
             // 问题信息
             FragmentContentAsker fragmentContentAsker = (FragmentContentAsker) entry.getValue();
@@ -49,7 +49,7 @@ public class SqlAskerPipeline implements Pipeline {
             // asker_viewCount 提问者浏览总数
             params.add(fragmentContentAsker.getAsker_viewCount());
             // 需要更新的问题id
-            params.add(Integer.parseInt(question.get("FragmentID").toString()));
+            params.add(Integer.parseInt(question.get("question_id").toString()));
 
             try {
                 mysql.addDeleteModify(addSql, params);

@@ -5,6 +5,8 @@ import spider.spiders.webmagic.bean.FragmentContentQuestion;
 import spider.spiders.webmagic.pipeline.SqlQuestionPipeline;
 import spider.spiders.webmagic.ProcessorSQL;
 import spider.spiders.webmagic.spider.YangKuanSpider;
+import spider.spiders.yahooanswer.YahooAskerProcessor;
+import spider.spiders.yahooanswer.YahooProcessor;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
@@ -79,10 +81,13 @@ public class StackoverflowQuestionProcessor implements PageProcessor {
             System.out.println("问题链接：" + question_url);
             // 提问者链接
             String asker_url = domain + html.xpath("//div[@class='post-signature owner grid--cell fl0']//div[@class='user-details']//a/@href").all().get(0);
-            // 获取问题分数、问题回答数、问题浏览数
+            // 获取问题分数、问题回答数、问题浏览数及其预处理
             String question_score = html.xpath("//div[@class='vote']/span[@class='vote-count-post ']/text()").get();
             String question_answerCount = html.xpath("//div[@id='answers-header']//h2/@data-answercount").get();
             String question_viewCount = html.xpath("//table[@id='qinfo']//p[@class='label-key']/allText()").all().get(3);
+            question_score = ProcessFeature.processWebsiteNumbers(question_score);
+            question_answerCount = ProcessFeature.processQuestionAnswerCount(question_answerCount);
+            question_viewCount = ProcessFeature.processQuestionViewCount(question_viewCount);
             System.out.println("score: " + question_score + ", answer: " + question_answerCount + ", view: " + question_viewCount);
             // 获取问题标题、问题正文、问题最佳回答
             String title = html.xpath("//div[@id='question-header']/h1/a").get();
@@ -113,6 +118,8 @@ public class StackoverflowQuestionProcessor implements PageProcessor {
             // 保存问题文本信息
             fragmentContentQuestion.setFragments(fragments);
             fragmentContentQuestion.setFragmentsPureText(fragmentsPureText);
+            fragmentContentQuestion.setPage_search_url("https://stackoverflow.com/search?q=");
+            fragmentContentQuestion.setPage_website_logo("fa fa-stack-overflow");
             fragmentContentQuestion.setQuestion_url(question_url);
             fragmentContentQuestion.setQuestion_title(title);
             fragmentContentQuestion.setQuestion_title_pure(title_p);
@@ -156,7 +163,11 @@ public class StackoverflowQuestionProcessor implements PageProcessor {
     }
 
     public static void main(String[] args) {
-        new StackoverflowQuestionProcessor().StackoverflowCrawl("test");
+        String domainName = "test";
+//        new YahooProcessor().YahooCrawl(domainName);
+//        new YahooAskerProcessor().YahooCrawl(domainName);
+//        new StackoverflowQuestionProcessor().StackoverflowCrawl(domainName);
+        new StackoverflowAskerProcessor().StackoverflowCrawl(domainName);
     }
 
 }

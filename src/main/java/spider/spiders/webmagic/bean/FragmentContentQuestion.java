@@ -11,6 +11,9 @@ import java.util.List;
  */
 public class FragmentContentQuestion extends FragmentContent {
 
+    private String page_website_logo;
+    private String page_search_url;
+    private String page_column_color;
     private String question_url;
     private String question_title;
     private String question_title_pure;
@@ -26,7 +29,10 @@ public class FragmentContentQuestion extends FragmentContent {
     @Override
     public String toString() {
         return "FragmentContentQuestion{" +
-                "question_url='" + question_url + '\'' +
+                "page_website_logo='" + page_website_logo + '\'' +
+                ", page_search_url='" + page_search_url + '\'' +
+                ", page_column_color='" + page_column_color + '\'' +
+                ", question_url='" + question_url + '\'' +
                 ", question_title='" + question_title + '\'' +
                 ", question_title_pure='" + question_title_pure + '\'' +
                 ", question_body='" + question_body + '\'' +
@@ -38,6 +44,30 @@ public class FragmentContentQuestion extends FragmentContent {
                 ", question_viewCount='" + question_viewCount + '\'' +
                 ", asker_url='" + asker_url + '\'' +
                 '}';
+    }
+
+    public String getPage_website_logo() {
+        return page_website_logo;
+    }
+
+    public void setPage_website_logo(String page_website_logo) {
+        this.page_website_logo = page_website_logo;
+    }
+
+    public String getPage_search_url() {
+        return page_search_url;
+    }
+
+    public void setPage_search_url(String page_search_url) {
+        this.page_search_url = page_search_url;
+    }
+
+    public String getPage_column_color() {
+        return page_column_color;
+    }
+
+    public void setPage_column_color(String page_column_color) {
+        this.page_column_color = page_column_color;
     }
 
     public String getQuestion_url() {
@@ -132,8 +162,11 @@ public class FragmentContentQuestion extends FragmentContent {
 
     }
 
-    public FragmentContentQuestion(String question_url, String question_title, String question_title_pure, String question_body, String question_body_pure, String question_best_answer, String question_best_answer_pure, String question_score, String question_answerCount, String question_viewCount, String asker_url) {
+    public FragmentContentQuestion(String page_website_logo, String page_search_url, String page_column_color, String question_url, String question_title, String question_title_pure, String question_body, String question_body_pure, String question_best_answer, String question_best_answer_pure, String question_score, String question_answerCount, String question_viewCount, String asker_url) {
 
+        this.page_website_logo = page_website_logo;
+        this.page_search_url = page_search_url;
+        this.page_column_color = page_column_color;
         this.question_url = question_url;
         this.question_title = question_title;
         this.question_title_pure = question_title_pure;
@@ -147,8 +180,11 @@ public class FragmentContentQuestion extends FragmentContent {
         this.asker_url = asker_url;
     }
 
-    public FragmentContentQuestion(List<String> fragments, List<String> fragmentsPureText, String question_url, String question_title, String question_title_pure, String question_body, String question_body_pure, String question_best_answer, String question_best_answer_pure, String question_score, String question_answerCount, String question_viewCount, String asker_url) {
+    public FragmentContentQuestion(List<String> fragments, List<String> fragmentsPureText, String page_website_logo, String page_search_url, String page_column_color, String question_url, String question_title, String question_title_pure, String question_body, String question_body_pure, String question_best_answer, String question_best_answer_pure, String question_score, String question_answerCount, String question_viewCount, String asker_url) {
         super(fragments, fragmentsPureText);
+        this.page_website_logo = page_website_logo;
+        this.page_search_url = page_search_url;
+        this.page_column_color = page_column_color;
         this.question_url = question_url;
         this.question_title = question_title;
         this.question_title_pure = question_title_pure;

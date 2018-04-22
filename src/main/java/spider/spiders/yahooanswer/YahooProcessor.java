@@ -1,6 +1,7 @@
 package spider.spiders.yahooanswer;
 
 import app.Config;
+import spider.spiders.stackoverflow.ProcessFeature;
 import spider.spiders.webmagic.bean.FragmentContent;
 import spider.spiders.webmagic.ProcessorSQL;
 import spider.spiders.webmagic.bean.FragmentContentQuestion;
@@ -83,6 +84,8 @@ public class YahooProcessor implements PageProcessor {
             String question_score = html.xpath("//div[@class='qfollow Mend-10 Fz-13 Fw-n D-ib Cur-p']/span[@class='follow-text']/@data-ya-fc").get();
             String question_answerCount = html.xpath("//div[@class='Mend-10 Fz-13 Fw-n D-ib']/span/allText()").all().get(1);
             String question_viewCount = "";
+            question_score = ProcessFeature.processWebsiteNumbers(question_score);
+            question_answerCount = ProcessFeature.processQuestionAnswerCount(question_answerCount);
             System.out.println("score: " + question_score + ", answer: " + question_answerCount + ", view: " + question_viewCount);
             // 雅虎问答的标题
             String question_title_pure = html.xpath("//h1[@itemprop='name']/text()").get();
@@ -118,6 +121,8 @@ public class YahooProcessor implements PageProcessor {
             // 保存问题文本信息
             fragmentContentQuestion.setFragments(fragments);
             fragmentContentQuestion.setFragmentsPureText(fragmentsPureText);
+            fragmentContentQuestion.setPage_website_logo("fa fa-yahoo");
+            fragmentContentQuestion.setPage_search_url("https://answers.search.yahoo.com/search?p=");
             fragmentContentQuestion.setQuestion_url(question_url);
             fragmentContentQuestion.setQuestion_title(question_title);
             fragmentContentQuestion.setQuestion_title_pure(question_title_pure);

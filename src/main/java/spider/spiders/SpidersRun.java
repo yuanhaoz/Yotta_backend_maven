@@ -162,8 +162,7 @@ public class SpidersRun {
         String domainName = domain.getClassName();
 
         // 爬取雅虎问答：问题页面 + 提问者页面
-        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Yahoo") &&
-                !MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE, domainName, "Yahoo") ) {
+        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Yahoo") ) {
             // 问题页面
             YahooProcessor yahooProcessor = new YahooProcessor();
             yahooProcessor.YahooCrawl(domainName);
@@ -174,10 +173,8 @@ public class SpidersRun {
             Log.log("数据已经爬取：" + domainName + "，yahoo");
         }
 
-
         // 爬取Stackoverflow：问题页面 + 提问者页面
-        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Stackoverflow") &&
-                !MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE, domainName, "Stackoverflow")) {
+        if (!MysqlReadWriteDAO.judgeByClassAndSourceName(Config.ASSEMBLE_FRAGMENT_TABLE, domainName, "Stackoverflow")) {
             // 问题页面
             StackoverflowQuestionProcessor stackoverflowProcessor = new StackoverflowQuestionProcessor();
             stackoverflowProcessor.StackoverflowCrawl(domainName);

@@ -24,6 +24,56 @@ public class SqlQuestionPipeline implements Pipeline {
     public void process(ResultItems resultItems, Task task) {
 //        System.out.println(resultItems.getAll().size());
         for (Map.Entry<String, Object> entry : resultItems.getAll().entrySet()) {
+
+            // 问题信息
+            FragmentContentQuestion fragmentContentQuestion = (FragmentContentQuestion) entry.getValue();
+            // 分面信息
+            Map<String,Object> facetTableMap = resultItems.getRequest().getExtras();
+            // 获取在assemble_fragment自增的主键
+            int fragmentId = 0;
+
+            /**
+             * 插入assemble_fragment表格
+             */
+            mysqlUtils mysqlFra = new mysqlUtils();
+            List<Object> paramsFra = new ArrayList<Object>();
+            // 定义插入语句参数
+            String addSqlFra = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE
+                    + "(FragmentContent, Text, FragmentScratchTime, " +
+                    "TermID, TermName, FacetName, " +
+                    "FacetLayer, ClassName, SourceName) " +
+                    "values (?,?,?,?,?,?,?,?,?)";
+            // FragmentContent 碎片内容（带html标签）
+            paramsFra.add(fragmentContentQuestion.getFragments().get(0));
+            // Text 碎片内容（纯文本）
+            paramsFra.add(fragmentContentQuestion.getFragmentsPureText().get(0));
+            // FragmentScratchTime 碎片爬取时间
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+            String date = df.format(new Date());// new Date()为获取当前系统时间，也可使用当前时间戳
+            paramsFra.add(date);
+            // TermID 主题ID
+            paramsFra.add(facetTableMap.get("TermID"));
+            // TermName 主题名
+            paramsFra.add(facetTableMap.get("TermName"));
+            // FacetName 分面名
+            paramsFra.add(facetTableMap.get("FacetName"));
+            // FacetLayer 分面层
+            paramsFra.add(facetTableMap.get("FacetLayer"));
+            // ClassName 课程名
+            paramsFra.add(facetTableMap.get("ClassName"));
+            // Source 数据源
+            paramsFra.add(facetTableMap.get("SourceName"));
+
+            try {
+                fragmentId = mysqlFra.addGeneratedKey(addSqlFra, paramsFra);
+                System.out.println("assemble_fragment：insert question information success, fragmentID is: " + fragmentId);
+            }
+            catch (SQLException exception){
+                System.out.println("assemble_fragment：insert question information fail：" + exception.getMessage());
+            } finally {
+                mysqlFra.closeconnection();
+            }
+
             /**
              * 插入assemble_fragment_question表格
              */
@@ -31,41 +81,21 @@ public class SqlQuestionPipeline implements Pipeline {
             List<Object> params = new ArrayList<Object>();
             // 定义插入语句参数
             String addSql = "insert into " + Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE
-                    + "(FragmentContent, Text, FragmentScratchTime, " +
-                    "TermID, TermName, FacetName, " +
-                    "FacetLayer, ClassName, SourceName, question_url, " +
-                    "question_title, question_title_pure, " +
+                    + "(page_website_logo, page_search_url, page_column_color, " +
+                    "question_url, question_title, question_title_pure, " +
                     "question_body, question_body_pure, " +
                     "question_best_answer, question_best_answer_pure, " +
                     "question_score, question_answerCount, question_viewCount, " +
-                    "asker_url) " +
-                    "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
-
-            // 问题信息
-            FragmentContentQuestion fragmentContentQuestion = (FragmentContentQuestion) entry.getValue();
-            // 分面信息
-            Map<String,Object> facetTableMap = resultItems.getRequest().getExtras();
-
-            // FragmentContent 碎片内容（带html标签）
-            params.add(fragmentContentQuestion.getFragments().get(0));
-            // Text 碎片内容（纯文本）
-            params.add(fragmentContentQuestion.getFragmentsPureText().get(0));
-            // FragmentScratchTime 碎片爬取时间
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
-            String date = df.format(new Date());// new Date()为获取当前系统时间，也可使用当前时间戳
-            params.add(date);
-            // TermID 主题ID
-            params.add(facetTableMap.get("TermID"));
-            // TermName 主题名
-            params.add(facetTableMap.get("TermName"));
-            // FacetName 分面名
-            params.add(facetTableMap.get("FacetName"));
-            // FacetLayer 分面层
-            params.add(facetTableMap.get("FacetLayer"));
-            // ClassName 课程名
-            params.add(facetTableMap.get("ClassName"));
-            // Source 数据源
-            params.add(facetTableMap.get("SourceName"));
+                    "asker_url, fragment_id) " +
+                    "values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            // page_website_logo 问题网站logo
+            // SO为 fa fa-stack-overflow, Yahoo为 fa fa-yahoo
+            params.add(fragmentContentQuestion.getPage_website_logo());
+            // page_search_url 问题网站搜索链接
+            // SO为 https://stackoverflow.com/search?q=, Yahoo为 https://answers.search.yahoo.com/search?p=
+            params.add(fragmentContentQuestion.getPage_search_url());
+            // page_column_color 问题网站高质量显示颜色
+            params.add(fragmentContentQuestion.getPage_column_color());
 
             // question_url 问题链接
             params.add(fragmentContentQuestion.getQuestion_url());
@@ -91,57 +121,21 @@ public class SqlQuestionPipeline implements Pipeline {
             // asker_url 提问者个人主页链接
             params.add(fragmentContentQuestion.getAsker_url());
 
-//            try {
-//                mysql.addDeleteModify(addSql, params);
-//                System.out.println("assemble_fragment_question：insert question information success");
-//            }
-//            catch (SQLException exception){
-//                System.out.println("assemble_fragment_question：insert question information fail：" + exception.getMessage());
-//            } finally {
-//                mysql.closeconnection();
-//            }
-
-
-            /**
-             * 插入assemble_fragment表格
-             */
-            mysqlUtils mysqlFra = new mysqlUtils();
-            List<Object> paramsFra = new ArrayList<Object>();
-            // 定义插入语句参数
-            String addSqlFra = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE
-                    + "(FragmentContent, Text, FragmentScratchTime, " +
-                    "TermID, TermName, FacetName, " +
-                    "FacetLayer, ClassName, SourceName) " +
-                    "values (?,?,?,?,?,?,?,?,?)";
-
-            // FragmentContent 碎片内容（带html标签）
-            paramsFra.add(fragmentContentQuestion.getFragments().get(0));
-            // Text 碎片内容（纯文本）
-            paramsFra.add(fragmentContentQuestion.getFragmentsPureText().get(0));
-            // FragmentScratchTime 碎片爬取时间
-            paramsFra.add(date);
-            // TermID 主题ID
-            paramsFra.add(facetTableMap.get("TermID"));
-            // TermName 主题名
-            paramsFra.add(facetTableMap.get("TermName"));
-            // FacetName 分面名
-            paramsFra.add(facetTableMap.get("FacetName"));
-            // FacetLayer 分面层
-            paramsFra.add(facetTableMap.get("FacetLayer"));
-            // ClassName 课程名
-            paramsFra.add(facetTableMap.get("ClassName"));
-            // Source 数据源
-            paramsFra.add(facetTableMap.get("SourceName"));
+            // fragmentId 外键，对应在assemble_fragment中的主键
+            params.add(fragmentId);
 
             try {
-                mysqlFra.addGeneratedKey(addSqlFra, paramsFra);
-                System.out.println("assemble_fragment：insert question information success");
+                mysql.addDeleteModify(addSql, params);
+                System.out.println("assemble_fragment_question：insert question information success");
             }
             catch (SQLException exception){
-                System.out.println("assemble_fragment：insert question information fail：" + exception.getMessage());
+                System.out.println("assemble_fragment_question：insert question information fail：" + exception.getMessage());
             } finally {
                 mysql.closeconnection();
             }
+
+
+
         }
 
     }
