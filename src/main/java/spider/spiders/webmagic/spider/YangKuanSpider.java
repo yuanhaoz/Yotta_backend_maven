@@ -1,4 +1,4 @@
-package spider.spiders.webmagic;
+package spider.spiders.webmagic.spider;
 
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Spider;

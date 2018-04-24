@@ -10,6 +10,7 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.wltea.analyzer.core.IKSegmenter;
 import org.wltea.analyzer.core.Lexeme;
+import questionQuality.bean.AssembleFragmentQuestionAndAsker;
 import spider.bean.AssembleFragment;
 import spider.bean.EchartObj1;
 import spider.bean.EchartObj2;
@@ -23,7 +24,10 @@ import utils.mysqlUtils;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -428,7 +432,7 @@ public class SpiderAPI {
             String topicName = topicNameArray[i];
             mysqlUtils mysql = new mysqlUtils();
             String sql = "select * from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where ClassName=? and TermName=?";
-            List<Object> params = new ArrayList<Object>();
+            List<Object> params = new ArrayList<>();
             params.add(className);
             params.add(topicName);
             try {
@@ -446,6 +450,201 @@ public class SpiderAPI {
                     assembleFragment.setFacetLayer(Integer.parseInt(map.get("FacetLayer").toString()));
                     assembleFragment.setClassName(map.get("ClassName").toString());
                     assembleFragment.setSourceName(map.get("SourceName").toString());
+                    assembleFragmentList.add(assembleFragment);
+                }
+            } catch (Exception e) {
+                response = Response.status(401).entity(new error(e.toString())).build();
+                e.printStackTrace();
+            } finally {
+                mysql.closeconnection();
+            }
+        }
+        response = Response.status(200).entity(assembleFragmentList).build();
+
+        return response;
+    }
+
+    @POST
+    @Path("/getFragmentQuestionByTopicArrayAndSource")
+    @ApiOperation(value = "获取主题下的碎片数据", notes = "根据课程名、数据源、主题数组，获取主题下的碎片数据")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败", response = String.class),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getFragmentQuestionByTopicArrayAndSource(
+            @FormParam("className") String className,
+            @FormParam("topicNames") String topicNames,
+            @FormParam("sourceName") String sourceName
+    ) {
+        Response response = null;
+        List<AssembleFragmentQuestionAndAsker> assembleFragmentList = new ArrayList<>();
+        String[] topicNameArray = topicNames.split(",");
+
+        /**
+         * 循环所有主题
+         */
+        for (int i = 0; i < topicNameArray.length; i++) {
+
+            /**
+             * 读取spider_fragment，获得主题碎片
+             */
+            String topicName = topicNameArray[i];
+            mysqlUtils mysql = new mysqlUtils();
+            String sql = "SELECT\n" +
+                    "af.*,\n" +
+                    "afq.*\n" +
+                    "FROM\n" +
+                    Config.ASSEMBLE_FRAGMENT_TABLE + " AS af\n" +
+                    "LEFT JOIN " +
+                    Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE +
+                    " AS afq ON af.FragmentID = afq.fragment_id\n" +
+                    "WHERE\n" +
+                    "af.ClassName = ? AND\n" +
+                    "af.TermName = ? AND\n" +
+                    "af.SourceName = ?\n";
+            List<Object> params = new ArrayList<Object>();
+            params.add(className);
+            params.add(topicName);
+            params.add(sourceName);
+            try {
+                List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+                for (int j = 0; j < results.size(); j++) {
+                    Map<String, Object> map = results.get(j);
+                    AssembleFragmentQuestionAndAsker assembleFragment = new AssembleFragmentQuestionAndAsker();
+                    assembleFragment.setFragmentID(Integer.parseInt(map.get("FragmentID").toString()));
+                    assembleFragment.setFragmentContent(map.get("FragmentContent").toString());
+                    assembleFragment.setText(map.get("Text").toString());
+                    assembleFragment.setFragmentScratchTime(map.get("FragmentScratchTime").toString());
+                    assembleFragment.setTermID(Integer.parseInt(map.get("TermID").toString()));
+                    assembleFragment.setTermName(map.get("TermName").toString());
+                    assembleFragment.setFacetName(map.get("FacetName").toString());
+                    assembleFragment.setFacetLayer(Integer.parseInt(map.get("FacetLayer").toString()));
+                    assembleFragment.setClassName(map.get("ClassName").toString());
+                    assembleFragment.setSourceName(map.get("SourceName").toString());
+                    if (!map.get("question_id").toString().equalsIgnoreCase("")) {
+                        assembleFragment.setQuestion_id(Integer.parseInt(map.get("question_id").toString()));
+                    }
+                    assembleFragment.setPage_website_logo(map.get("page_website_logo").toString());
+                    assembleFragment.setPage_search_url(map.get("page_search_url").toString());
+                    assembleFragment.setPage_column_color(map.get("page_column_color").toString());
+                    assembleFragment.setQuestion_url(map.get("question_url").toString());
+                    assembleFragment.setQuestion_title(map.get("question_title").toString());
+                    assembleFragment.setQuestion_title_pure(map.get("question_title_pure").toString());
+                    assembleFragment.setQuestion_body(map.get("question_body").toString());
+                    assembleFragment.setQuestion_body_pure(map.get("question_body_pure").toString());
+                    assembleFragment.setQuestion_best_answer(map.get("question_best_answer").toString());
+                    assembleFragment.setQuestion_best_answer_pure(map.get("question_best_answer_pure").toString());
+                    assembleFragment.setQuestion_score(map.get("question_score").toString());
+                    assembleFragment.setQuestion_answerCount(map.get("question_answerCount").toString());
+                    assembleFragment.setQuestion_viewCount(map.get("question_viewCount").toString());
+                    assembleFragment.setAsker_url(map.get("asker_url").toString());
+                    assembleFragment.setAsker_name(map.get("asker_name").toString());
+                    assembleFragment.setAsker_reputation(map.get("asker_reputation").toString());
+                    assembleFragment.setAsker_answerCount(map.get("asker_answerCount").toString());
+                    assembleFragment.setAsker_questionCount(map.get("asker_questionCount").toString());
+                    assembleFragment.setAsker_viewCount(map.get("asker_viewCount").toString());
+                    assembleFragment.setAsker_best_answer_rate(map.get("asker_best_answer_rate").toString());
+                    assembleFragment.setQuestion_quality_label(map.get("question_quality_label").toString());
+                    if (!map.get("fragment_id").toString().equalsIgnoreCase("")) {
+                        assembleFragment.setFragment_id(Integer.parseInt(map.get("fragment_id").toString()));
+                    }
+                    assembleFragmentList.add(assembleFragment);
+                }
+            } catch (Exception e) {
+                response = Response.status(401).entity(new error(e.toString())).build();
+                e.printStackTrace();
+            } finally {
+                mysql.closeconnection();
+            }
+        }
+        response = Response.status(200).entity(assembleFragmentList).build();
+
+        return response;
+    }
+
+    @POST
+    @Path("/getFragmentQuestionByTopicArray")
+    @ApiOperation(value = "根据课程名和主题数组，获取主题下的碎片数据", notes = "根据课程名和主题数组，获取主题下的碎片数据")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败", response = String.class),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getFragmentQuestionByTopicArray(
+            @FormParam("className") String className,
+            @FormParam("topicNames") String topicNames
+    ) {
+        Response response = null;
+        List<AssembleFragmentQuestionAndAsker> assembleFragmentList = new ArrayList<>();
+        String[] topicNameArray = topicNames.split(",");
+
+        /**
+         * 循环所有主题
+         */
+        for (int i = 0; i < topicNameArray.length; i++) {
+
+            /**
+             * 读取spider_fragment，获得主题碎片
+             */
+            String topicName = topicNameArray[i];
+            mysqlUtils mysql = new mysqlUtils();
+            String sql = "SELECT\n" +
+                    "af.*,\n" +
+                    "afq.*\n" +
+                    "FROM\n" +
+                    Config.ASSEMBLE_FRAGMENT_TABLE + " AS af\n" +
+                    "LEFT JOIN " +
+                    Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE +
+                    " AS afq ON af.FragmentID = afq.fragment_id\n" +
+                    "WHERE\n" +
+                    "af.ClassName = ? AND\n" +
+                    "af.TermName = ?\n";
+            List<Object> params = new ArrayList<>();
+            params.add(className);
+            params.add(topicName);
+            try {
+                List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+                for (int j = 0; j < results.size(); j++) {
+                    Map<String, Object> map = results.get(j);
+                    AssembleFragmentQuestionAndAsker assembleFragment = new AssembleFragmentQuestionAndAsker();
+                    assembleFragment.setFragmentID(Integer.parseInt(map.get("FragmentID").toString()));
+                    assembleFragment.setFragmentContent(map.get("FragmentContent").toString());
+                    assembleFragment.setText(map.get("Text").toString());
+                    assembleFragment.setFragmentScratchTime(map.get("FragmentScratchTime").toString());
+                    assembleFragment.setTermID(Integer.parseInt(map.get("TermID").toString()));
+                    assembleFragment.setTermName(map.get("TermName").toString());
+                    assembleFragment.setFacetName(map.get("FacetName").toString());
+                    assembleFragment.setFacetLayer(Integer.parseInt(map.get("FacetLayer").toString()));
+                    assembleFragment.setClassName(map.get("ClassName").toString());
+                    assembleFragment.setSourceName(map.get("SourceName").toString());
+                    if (!map.get("question_id").toString().equalsIgnoreCase("")) {
+                        assembleFragment.setQuestion_id(Integer.parseInt(map.get("question_id").toString()));
+                    }
+                    assembleFragment.setPage_website_logo(map.get("page_website_logo").toString());
+                    assembleFragment.setPage_search_url(map.get("page_search_url").toString());
+                    assembleFragment.setPage_column_color(map.get("page_column_color").toString());
+                    assembleFragment.setQuestion_url(map.get("question_url").toString());
+                    assembleFragment.setQuestion_title(map.get("question_title").toString());
+                    assembleFragment.setQuestion_title_pure(map.get("question_title_pure").toString());
+                    assembleFragment.setQuestion_body(map.get("question_body").toString());
+                    assembleFragment.setQuestion_body_pure(map.get("question_body_pure").toString());
+                    assembleFragment.setQuestion_best_answer(map.get("question_best_answer").toString());
+                    assembleFragment.setQuestion_best_answer_pure(map.get("question_best_answer_pure").toString());
+                    assembleFragment.setQuestion_score(map.get("question_score").toString());
+                    assembleFragment.setQuestion_answerCount(map.get("question_answerCount").toString());
+                    assembleFragment.setQuestion_viewCount(map.get("question_viewCount").toString());
+                    assembleFragment.setAsker_url(map.get("asker_url").toString());
+                    assembleFragment.setAsker_name(map.get("asker_name").toString());
+                    assembleFragment.setAsker_reputation(map.get("asker_reputation").toString());
+                    assembleFragment.setAsker_answerCount(map.get("asker_answerCount").toString());
+                    assembleFragment.setAsker_questionCount(map.get("asker_questionCount").toString());
+                    assembleFragment.setAsker_viewCount(map.get("asker_viewCount").toString());
+                    assembleFragment.setAsker_best_answer_rate(map.get("asker_best_answer_rate").toString());
+                    assembleFragment.setQuestion_quality_label(map.get("question_quality_label").toString());
+                    if (!map.get("fragment_id").toString().equalsIgnoreCase("")) {
+                        assembleFragment.setFragment_id(Integer.parseInt(map.get("fragment_id").toString()));
+                    }
                     assembleFragmentList.add(assembleFragment);
                 }
             } catch (Exception e) {

@@ -1,4 +1,4 @@
-package spider.spiders.webmagic;
+package spider.spiders.webmagic.bean;
 
 import java.util.List;
 

@@ -17,6 +17,7 @@ import io.swagger.jaxrs.config.BeanConfig;
 import login.LoginAPI;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
+import questionQuality.QuestionQualityAPI;
 import source.SourceAPI;
 import spider.SpiderAPI;
 import statistics.StatisticsAPI;
@@ -38,7 +39,7 @@ public class MyRregister extends ResourceConfig {
 		beanConfig.setBasePath(Config.SWAGGERBASEPATH);  // 需要修改
 		beanConfig.setLicense(getApplicationName());
 		beanConfig.setContact("郑元浩       Email：994303805@qq.com");
-		beanConfig.setResourcePackage("domain,domainTopic,facet,spider,assemble,dependency,statistics,subject,source");  // 需要修改
+		beanConfig.setResourcePackage("domain,domainTopic,facet,spider,assemble,dependency,statistics,subject,source,questionQuality");  // 需要修改
 		beanConfig.setScan(true);
 		//swagger  注册服务
 		Set<Class<?>> resources = new HashSet<>();
@@ -64,6 +65,7 @@ public class MyRregister extends ResourceConfig {
 		register(StatisticsAPI.class);
 		register(SubjectAPI.class);
 		register(SourceAPI.class);
+		register(QuestionQualityAPI.class);
 
 
 		/**
