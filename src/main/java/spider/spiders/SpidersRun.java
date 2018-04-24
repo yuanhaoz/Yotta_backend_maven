@@ -47,19 +47,15 @@ public class SpidersRun {
         // 如果数据库中表格不存在，先新建数据库表格
         DatabaseUtils.createTable();
         // 爬取多门课程
-        String excelPath = SpidersRun.class.getClassLoader().getResource("").getPath() + "domains-en-test1.xls";
+        String excelPath = SpidersRun.class.getClassLoader().getResource("").getPath() + "domains-en.xls";
         List<Domain> domainList = getDomainFromExcel(excelPath);
         for (int i = 0; i < domainList.size(); i++) {
             Domain domain = domainList.get(i);
-
-//            spiderFragmentEn(domain);
-
             // 如果domain表已经有这门课程，就不爬取这门课程的数据，没有就爬取
             boolean hasSpidered = MysqlReadWriteDAO.judgeByClass(Config.DOMAIN_TABLE, domain.getClassName());
             if (!hasSpidered) {
                 Log.log("domain表格没有这门课程，开始爬取课程：" + domain);
                 constructKGByDomainNameEn(domain);
-//                spiderFragment(domain);
                 spiderFragmentEn(domain);
             } else {
                 Log.log("domain表格有这门课程，不需要爬取课程：" + domain);

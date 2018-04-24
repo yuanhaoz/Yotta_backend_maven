@@ -1,11 +1,13 @@
 package questionQuality.bean;
 
+import spider.bean.AssembleFragment;
+
 /**
  * 装配好的问题碎片：包括问题和提问者信息
  * @author yuanhao
  * @date 2018/4/12 14:31
  */
-public class AssembleFragmentQuestionAndAsker {
+public class AssembleFragmentQuestionAndAsker extends AssembleFragment {
 
     private int question_id;
     // 问题网站信息
