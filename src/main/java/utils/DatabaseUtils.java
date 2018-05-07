@@ -40,6 +40,8 @@ public class DatabaseUtils {
                 "  `FragmentContent` longtext NOT NULL COMMENT '碎片内容（包含文本和图片，html形式）',\n" +
                 "  `Text` longtext NOT NULL COMMENT '碎片内容（只有文本，纯文本形式）',\n" +
                 "  `FragmentScratchTime` datetime DEFAULT NULL COMMENT '碎片爬取时间',\n" +
+                "  `FragmentUrl` varchar(255) DEFAULT NULL COMMENT '碎片链接',\n" +
+                "  `UserName` varchar(255) DEFAULT NULL COMMENT '添加碎片的用户名',\n" +
                 "  `TermID` int(20) DEFAULT NULL COMMENT '主题ID',\n" +
                 "  `TermName` varchar(100) DEFAULT NULL COMMENT '主题名',\n" +
                 "  `FacetName` varchar(100) DEFAULT NULL COMMENT '分面名',\n" +
@@ -168,7 +170,9 @@ public class DatabaseUtils {
                 "  `FragmentID` int(20) NOT NULL AUTO_INCREMENT COMMENT '碎片ID',\n" +
                 "  `FragmentContent` longtext NOT NULL COMMENT '碎片内容',\n" +
                 "  `FragmentScratchTime` datetime DEFAULT NULL COMMENT '碎片爬取时间',\n" +
+                "  `FragmentUrl` varchar(255) DEFAULT NULL COMMENT '碎片链接',\n" +
                 "  `UserName` varchar(255) DEFAULT NULL COMMENT '添加碎片的用户名',\n" +
+                "  `SourceName` varchar(255) DEFAULT NULL COMMENT '碎片数据源',,\n" +
                 "  PRIMARY KEY (`FragmentID`)\n" +
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8;";
         String sqlSource = "CREATE TABLE IF NOT EXISTS `source` (\n" +

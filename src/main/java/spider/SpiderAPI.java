@@ -1002,16 +1002,27 @@ public class SpiderAPI {
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
     public static Response updateFragment(
             @FormParam("FragmentID") String FragmentID,
-            @FormParam("FragmentContent") String FragmentContent
+            @FormParam("UserName") String UserName,
+            @FormParam("FragmentContent") String FragmentContent,
+            @FormParam("FragmentUrl") String FragmentUrl,
+            @FormParam("SourceName") String SourceName
     ) {
         /**
          * 创建碎片
          */
         boolean result = false;
         mysqlUtils mysql = new mysqlUtils();
-        String sql = "update " + Config.FRAGMENT + " set FragmentContent = ? where FragmentID = ?";
+        String sql = "update " + Config.FRAGMENT +
+                " set UserName = ?," +
+                " FragmentContent = ?, " +
+                " FragmentUrl = ?, " +
+                " SourceName = ? " +
+                " where FragmentID = ?";
         List<Object> params = new ArrayList<Object>();
+        params.add(UserName);
         params.add(FragmentContent);
+        params.add(FragmentUrl);
+        params.add(SourceName);
         params.add(FragmentID);
         try {
             result = mysql.addDeleteModify(sql, params);
@@ -1038,7 +1049,9 @@ public class SpiderAPI {
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
     public static Response createFragment(
             @FormParam("FragmentContent") String FragmentContent,
-            @FormParam("UserName") String UserName
+            @FormParam("UserName") String UserName,
+            @FormParam("FragmentUrl") String FragmentUrl,
+            @FormParam("SourceName") String SourceName
     ) {
 //		Response response = null;
         /**
@@ -1047,13 +1060,16 @@ public class SpiderAPI {
         try {
             boolean result = false;
             mysqlUtils mysql = new mysqlUtils();
-            String sql = "insert into " + Config.FRAGMENT + "(FragmentContent,FragmentScratchTime,UserName) values(?,?,?);";
+            String sql = "insert into " + Config.FRAGMENT +
+                    "(FragmentContent,FragmentScratchTime,UserName,FragmentUrl,SourceName) values(?,?,?,?,?);";
             Date d = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             List<Object> params = new ArrayList<Object>();
             params.add(FragmentContent);
             params.add(sdf.format(d));
             params.add(UserName);
+            params.add(FragmentUrl);
+            params.add(SourceName);
             try {
                 result = mysql.addDeleteModify(sql, params);
             } catch (Exception e) {
@@ -1228,7 +1244,7 @@ public class SpiderAPI {
             String sql_term = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName=? and TermName=?";
             String sql_query = "select * from " + Config.FRAGMENT + " where FragmentID=?";
             String sql_delete = "delete from " + Config.FRAGMENT + " where FragmentID=?";
-            String sql_add = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE + "(FragmentContent,Text,FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName,SourceName) values(?,?,?,?,?,?,?,?,?);";
+            String sql_add = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE + "(FragmentContent,Text,FragmentScratchTime,FragmentUrl, UserName,TermID,TermName,FacetName,FacetLayer,ClassName,SourceName) values(?,?,?,?,?,?,?,?,?,?,?);";
 
             List<Object> params_term = new ArrayList<Object>();
             params_term.add(ClassName);
@@ -1242,18 +1258,18 @@ public class SpiderAPI {
                 params_add.add(fragmentinfo.get(0).get("FragmentContent"));
                 params_add.add(JsoupDao.parseHtmlText(fragmentinfo.get(0).get("FragmentContent").toString()).text());
                 params_add.add(fragmentinfo.get(0).get("FragmentScratchTime"));
+                params_add.add(fragmentinfo.get(0).get("FragmentUrl"));
+                params_add.add(fragmentinfo.get(0).get("UserName"));
                 params_add.add(results_term.get(0).get("TermID"));
                 params_add.add(TermName);
                 params_add.add(FacetName);
                 params_add.add(FacetLayer);
                 params_add.add(ClassName);
-                params_add.add("人工");
+                params_add.add(fragmentinfo.get(0).get("SourceName"));
                 result = mysql.addDeleteModify(sql_add, params_add);
                 if (result) {
                     try {
                         mysql.addDeleteModify(sql_delete, params_fragment);
-
-
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -1324,6 +1340,27 @@ public class SpiderAPI {
          * 删除碎片
          */
         try {
+
+            mysqlUtils mysqlQuery = new mysqlUtils();
+            String sqlQuery = "select * from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where FragmentID=?;";
+            List<Object> paramsQuery = new ArrayList<Object>();
+            paramsQuery.add(FragmentID);
+            try {
+                List<Map<String, Object>> result = mysqlQuery.returnMultipleResult(sqlQuery, paramsQuery);
+                String sqlInsert = "insert into " + Config.FRAGMENT + " (FragmentContent, FragmentScratchTime, FragmentUrl, UserName, SourceName) values(?,?,?,?,?);";
+                List<Object> paramsInsert = new ArrayList<Object>();
+                paramsInsert.add(result.get(0).get("FragmentContent").toString());
+                paramsInsert.add(result.get(0).get("FragmentScratchTime").toString());
+                paramsInsert.add(result.get(0).get("FragmentUrl").toString());
+                paramsInsert.add(result.get(0).get("UserName").toString());
+                paramsInsert.add(result.get(0).get("SourceName").toString());
+                mysqlQuery.addDeleteModify(sqlInsert, paramsInsert);
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                mysqlQuery.closeconnection();
+            }
+
             boolean result = false;
             mysqlUtils mysql = new mysqlUtils();
             String sql = "delete from " + Config.ASSEMBLE_FRAGMENT_TABLE + " where FragmentID=?;";
