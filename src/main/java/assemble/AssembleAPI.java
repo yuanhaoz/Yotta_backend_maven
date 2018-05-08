@@ -1,5 +1,6 @@
 package assemble;
 
+import app.error;
 import assemble.bean.*;
 import domainTopic.DomainTopicDAO;
 import domainTopic.bean.DomainTopic;
@@ -36,6 +37,9 @@ public class AssembleAPI {
             @DefaultValue("数据结构") @ApiParam(value = "领域名", required = true) @QueryParam("ClassName") String className) {
 
         List<DomainTopic> domainTopics = DomainTopicDAO.getDomainTopics(className);
+        if (domainTopics.size() == 0) {
+            return Response.status(401).entity(new error("获取课程下主题失败~")).build();
+        }
         String topicName = domainTopics.get(0).getTermName();
         return getTreeByTopicForFragment(className, topicName, true);
     }
