@@ -23,7 +23,7 @@ public class Config {
     /**
      * Mysql 配置
      */
-    public static String DBNAME = "yotta_create_test";
+    public static String DBNAME = "yotta_create";
 //    public static String DBNAME = "yotta";
     public static String HOST = "localhost";
     public static String USERNAME = "root";
