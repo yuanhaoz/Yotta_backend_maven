@@ -879,7 +879,9 @@ public class FacetAPI {
             @ApiResponse(code = 200, message = "正常返回结果", response = success.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response createFacet1(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName, @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName, @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName) {
+    public static Response createFacet1(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName
+            , @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName
+            , @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName) {
 //		Response response = null;
         /**
          * 在选定的课程和主题下添加一级分面
@@ -1039,7 +1041,11 @@ public class FacetAPI {
             @ApiResponse(code = 200, message = "正常返回结果", response = success.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response createFacet3(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName, @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName, @ApiParam(value = "一级分面名字", required = true) @QueryParam("Facet1Name") String Facet1Name, @ApiParam(value = "二级分面名字", required = true) @QueryParam("Facet2Name") String Facet2Name, @ApiParam(value = "三级分面名字", required = true) @QueryParam("Facet3Name") String Facet3Name) {
+    public static Response createFacet3(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName
+            , @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName
+            , @ApiParam(value = "一级分面名字", required = true) @QueryParam("Facet1Name") String Facet1Name
+            , @ApiParam(value = "二级分面名字", required = true) @QueryParam("Facet2Name") String Facet2Name
+            , @ApiParam(value = "三级分面名字", required = true) @QueryParam("Facet3Name") String Facet3Name) {
 //		Response response = null;
         /**
          * 在选定的课程和主题和一级分面、二级分面下添加三级分面（有bug，但在系统中不会出问题）
@@ -1129,7 +1135,9 @@ public class FacetAPI {
             @ApiResponse(code = 200, message = "正常返回结果", response = success.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response deleteFacet1(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName, @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName, @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName) {
+    public static Response deleteFacet1(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName
+            , @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName
+            , @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName) {
         /**
          * 删除指定课程及主题下的一级分面
          */
@@ -1236,7 +1244,9 @@ public class FacetAPI {
             @ApiResponse(code = 200, message = "正常返回结果", response = success.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response deleteFacet2(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName, @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName, @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName) {
+    public static Response deleteFacet2(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName
+            , @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName
+            , @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName) {
         /**
          * 删除指定课程及主题下的二级分面
          */
@@ -1315,7 +1325,9 @@ public class FacetAPI {
             @ApiResponse(code = 200, message = "正常返回结果", response = success.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response deleteFacet3(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName, @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName, @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName) {
+    public static Response deleteFacet3(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName
+            , @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName
+            , @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName) {
         /**
          * 删除指定课程及主题下的三级分面
          */
@@ -1370,7 +1382,10 @@ public class FacetAPI {
             @ApiResponse(code = 200, message = "正常返回结果", response = success.class)})
     @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
     @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
-    public static Response updateFacet1(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName, @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName, @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName, @ApiParam(value = "新分面名字", required = true) @QueryParam("NewFacetName") String NewFacetName) {
+    public static Response updateFacet1(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName
+            , @ApiParam(value = "主题名字", required = true) @QueryParam("TermName") String TermName
+            , @ApiParam(value = "分面名字", required = true) @QueryParam("FacetName") String FacetName
+            , @ApiParam(value = "新分面名字", required = true) @QueryParam("NewFacetName") String NewFacetName) {
         /**
          * 修改指定课程及主题下的一级分面名
          */
