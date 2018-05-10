@@ -23,7 +23,7 @@ public class RankText {
      * @param MAX 认知关系数目设置上限
      * @return 主题间的认知关系
      */
-    public List<Dependency> rankText(List<Term> termList, String ClassName, int MAX) {
+    public List<Dependency> rankText(List<Term> termList, String ClassName, int MAX, boolean isEnglish) {
         List<Dependency> dependencies = new ArrayList<>();
 
         logger.info("Finish Hash...");
@@ -33,10 +33,15 @@ public class RankText {
             for (int j = i + 1; j < termList.size(); j++) {
                 Term term1 = termList.get(i);
                 Term term2 = termList.get(j);
-                if (term1.getTermText().length() == 0 || term2.getTermText().length() == 0 || term1.equals("") || term2.equals("")) {
-                    Log.log("内容为空");
+                if (term1.getTermText().length() == 0 || term2.getTermText().length() == 0 || term1.getTermText().equals("") || term2.getTermText().equals("")) {
+//                    Log.log("内容为空");
                 } else {
-                    double dis = CosineSimilarAlgorithm.getSimilarity(term1.getTermText(), term2.getTermText());
+                    double dis = 0.0;
+                    if (isEnglish) {
+                        dis = CosineSimilarAlgorithm.getSimilarityEn(term1.getTermText(), term2.getTermText());
+                    } else {
+                        dis = CosineSimilarAlgorithm.getSimilarity(term1.getTermText(), term2.getTermText());
+                    }
 //				    logger.info(dis+"");
                     TwoTuple<Term, Term> twoTuple = new TwoTuple<>(term1, term2);
                     disMap.put(twoTuple, dis);

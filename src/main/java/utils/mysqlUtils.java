@@ -73,6 +73,32 @@ public class mysqlUtils {
     }
 
     /**
+     * 完成对数据库的增删改操作
+     * @param sql 语句
+     * @param params 传入的占位符，List集合
+     * @return SQL语句执行成功返回true, 否则返回false
+     * @throws SQLException
+     */
+    public int addGeneratedKey(String sql, List<Object> params) throws SQLException {
+        int generatedKeyValue = 0;
+        int result = -1;//设置为
+        pStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);  //填充占位符
+        int index = 1; //从第一个开始添加
+        if (params != null && !params.isEmpty()) {
+            for (int i = 0; i < params.size(); i++) {
+                pStatement.setObject(index++, params.get(i));//填充占位符
+            }
+        }
+        result = pStatement.executeUpdate(); // 执行成功将返回大于0的数
+        //输出主键值
+        resultset = pStatement.getGeneratedKeys();
+        if(resultset.next()){
+            generatedKeyValue = resultset.getInt(1);
+        }
+        return generatedKeyValue;
+    }
+
+    /**
      * 查询数据库，返回多条记录
      * @param sql 语句
      * @param params 占位符

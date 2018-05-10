@@ -101,13 +101,13 @@ public class FragmentEnCrawlerDAO {
              * 获取标题
              */
             Elements titles = doc.select("div#toc").select("li");
-            Log.log(titles.size());
+//            Log.log(titles.size());
             if (titles.size() != 0) {
                 for (int i = 0; i < titles.size(); i++) {
                     String index = titles.get(i).child(0).child(0).text();
                     String text = titles.get(i).child(0).child(1).text();
                     text = Config.converter.convert(text);
-                    Log.log(index + " " + text);
+//                    Log.log(index + " " + text);
                     indexs.add(index);
                     facets.add(text);
                 }
@@ -115,7 +115,7 @@ public class FragmentEnCrawlerDAO {
                 /**
                  * 将二级/三级标题全部匹配到对应的父标题
                  */
-                Log.log("--------------------------------------------");
+//                Log.log("--------------------------------------------");
                 for (int i = 0; i < indexs.size(); i++) {
                     String index = indexs.get(i);
                     if (index.lastIndexOf(".") == 1) { // 二级分面
@@ -146,7 +146,7 @@ public class FragmentEnCrawlerDAO {
                 }
 
             } else {
-                Log.log("该主题没有目录，不是目录结构，直接爬取 -->摘要<-- 信息");
+//                Log.log("该主题没有目录，不是目录结构，直接爬取 -->摘要<-- 信息");
             }
         } catch (Exception e) {
             Log.log("this is not a normal page...");
@@ -264,7 +264,7 @@ public class FragmentEnCrawlerDAO {
         for (int i = 0; i < assembleList.size(); i++) {
             AssembleFragmentFuzhu assemble = assembleList.get(i);
             Boolean exist = MysqlReadWriteDAO.judgeFacetRelation(assemble, domain, topic); // 判断该文本碎片对应的分面是否包含子分面
-            Boolean badText = judgeBadText(assemble); // 判断该文本碎片为那个不需要的文本
+            Boolean badText = FragmentEnExtract.judgeBadText(assemble); // 判断该文本碎片为那个不需要的文本
             Boolean badLength = FragmentEnExtract.getContentLen(assemble.getFacetContentPureText()) > Config.TEXTLENGTH; // 去除长度很短且无意义的文本碎片
             if (!exist && !badText && badLength) {
                 assembleResultList.add(assemble);
@@ -279,7 +279,7 @@ public class FragmentEnCrawlerDAO {
      * @param ClassName 领域名
      * @return 是否产生成功
      */
-    public static boolean getDependenceByClassName(String ClassName) {
+    public static boolean getDependenceByClassName(String ClassName, boolean isEnglish) {
 
         List<Term> termList = new ArrayList<Term>();
         /**
@@ -332,7 +332,7 @@ public class FragmentEnCrawlerDAO {
          */
         RankText rankText = new RankText();
 //		List<Dependency> dependencies = rankText.rankText(termList, ClassName, Config.DEPENDENCEMAX); // 设置认知关系的数量为固定值
-        List<Dependency> dependencies = rankText.rankText(termList, ClassName, termList.size()); // 设置认知关系的数量为主题的数量
+        List<Dependency> dependencies = rankText.rankText(termList, ClassName, termList.size(), isEnglish); // 设置认知关系的数量为主题的数量
         /**
          * 指定领域，存储主题间的认知关系
          */
@@ -365,7 +365,7 @@ public class FragmentEnCrawlerDAO {
      * @param ClassName 课程名
      */
     public static void getGexfByClassName(String ClassName) {
-        Log.log("正在处理课程：" + ClassName);
+        Log.log("正在生成gexf文件，正在处理课程：" + ClassName);
         new File(Config.GEXFPATH).mkdir();
         File gexfFile = new File(Config.GEXFPATH + "\\" + ClassName + ".gexf");
         if (gexfFile.exists()) {
@@ -559,36 +559,6 @@ public class FragmentEnCrawlerDAO {
                 Log.log("认知关系gephi文件生成成功" + result);
             }
         }
-    }
-
-    /**
-     * 判断分面内容是否包含最后一个多余的链接
-     *
-     * @return
-     */
-    public static Boolean judgeBadText(AssembleFragmentFuzhu assemble) {
-        Boolean exist = false;
-        String facetContent = assemble.getFacetContentPureText();
-        String badTxt1 = "本条目";
-        String badTxt2 = "主条目";
-        String badTxt3 = "目标页面不存在";
-        String badTxt4 = "此章节未";
-        String badTxt5 = "外部链接";
-        String badTxt6 = "[隐藏]";
-        String badTxt7 = "参考文献";
-        String badTxt8 = "延伸阅读";
-        String badTxt9 = "参见";
-        String badTxt10 = "[显示]";
-        String badTxt11 = "[编辑]";
-        if (facetContent.contains(badTxt1) || facetContent.contains(badTxt2)
-                || facetContent.contains(badTxt3) || facetContent.contains(badTxt4)
-                || facetContent.contains(badTxt5) || facetContent.contains(badTxt6)
-                || facetContent.contains(badTxt7) || facetContent.contains(badTxt8)
-                || facetContent.contains(badTxt9) || facetContent.contains(badTxt10)
-                || facetContent.contains(badTxt11)) {
-            exist = true;
-        }
-        return exist;
     }
 
 }

@@ -21,11 +21,12 @@ import java.util.Map;
 public class DatabaseUtils {
 
     public static void main(String[] args) {
-        createTable();
-        deleteBadFragment();
-        updateSourceName();
-        createIndex();
-        deleteDbByClassName();
+        String domainName = "Abstract_data_types";
+//        String domainName = "String_data_structures";
+//        String domainName = "Source_code_generation";
+//        String domainName = "R-tree";
+//        String domainName = "test";
+        deleteDbByClassName(domainName);
     }
 
     /**
@@ -39,6 +40,8 @@ public class DatabaseUtils {
                 "  `FragmentContent` longtext NOT NULL COMMENT '碎片内容（包含文本和图片，html形式）',\n" +
                 "  `Text` longtext NOT NULL COMMENT '碎片内容（只有文本，纯文本形式）',\n" +
                 "  `FragmentScratchTime` datetime DEFAULT NULL COMMENT '碎片爬取时间',\n" +
+                "  `FragmentUrl` varchar(255) DEFAULT NULL COMMENT '碎片链接',\n" +
+                "  `UserName` varchar(255) DEFAULT NULL COMMENT '添加碎片的用户名',\n" +
                 "  `TermID` int(20) DEFAULT NULL COMMENT '主题ID',\n" +
                 "  `TermName` varchar(100) DEFAULT NULL COMMENT '主题名',\n" +
                 "  `FacetName` varchar(100) DEFAULT NULL COMMENT '分面名',\n" +
@@ -48,6 +51,34 @@ public class DatabaseUtils {
                 "  PRIMARY KEY (`FragmentID`),\n" +
                 "  KEY `assembleFragment_ClassName_TermName_FacetName` (`ClassName`,`TermName`,`FacetName`)\n" +
                 ") ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;";
+        String sqlAssembleFragmentQuestion = "CREATE TABLE IF NOT EXISTS `assemble_fragment_question` (\n" +
+                "  `question_id` int(20) NOT NULL AUTO_INCREMENT COMMENT '碎片ID',\n" +
+                "  `page_website_logo` varchar(255) DEFAULT NULL COMMENT '问题网站logo。SO为 fa fa-stack-overflow, Yahoo为 fa fa-yahoo',\n" +
+                "  `page_search_url` varchar(255) DEFAULT NULL COMMENT '问题网站搜索链接。SO为 https://stackoverflow.com/search?q=, Yahoo为 https://answers.search.yahoo.com/search?p=',\n" +
+                "  `page_column_color` varchar(255) DEFAULT NULL COMMENT '问题网站高质量显示颜色',\n" +
+                "  `question_url` varchar(255) DEFAULT NULL COMMENT '问题链接',\n" +
+                "  `question_title` longtext COMMENT '问题标题(带html标签)',\n" +
+                "  `question_title_pure` longtext COMMENT '问题标题(纯文本)',\n" +
+                "  `question_body` longtext COMMENT '问题正文(带html标签)',\n" +
+                "  `question_body_pure` longtext COMMENT '问题正文(纯文本)',\n" +
+                "  `question_best_answer` longtext COMMENT '问题最佳答案(带html标签)',\n" +
+                "  `question_best_answer_pure` longtext COMMENT '问题最佳答案(纯文本)',\n" +
+                "  `question_score` varchar(100) DEFAULT NULL COMMENT '问题分数',\n" +
+                "  `question_answerCount` varchar(100) DEFAULT NULL COMMENT '问题回答数',\n" +
+                "  `question_viewCount` varchar(100) DEFAULT NULL COMMENT '问题浏览数',\n" +
+                "  `asker_url` varchar(100) DEFAULT NULL COMMENT '提问者个人主页链接',\n" +
+                "  `asker_name` varchar(100) DEFAULT NULL COMMENT '提问者姓名',\n" +
+                "  `asker_reputation` varchar(100) DEFAULT NULL COMMENT '提问者声望值',\n" +
+                "  `asker_answerCount` varchar(100) DEFAULT NULL COMMENT '提问者回答总数',\n" +
+                "  `asker_questionCount` varchar(100) DEFAULT NULL COMMENT '提问者问题总数',\n" +
+                "  `asker_viewCount` varchar(100) DEFAULT NULL COMMENT '提问者浏览总数',\n" +
+                "  `asker_best_answer_rate` varchar(100) DEFAULT NULL COMMENT '提问者最佳回答率',\n" +
+                "  `question_quality_label` varchar(100) DEFAULT NULL COMMENT '问题质量标签',\n" +
+                "  `fragment_id` int(20) DEFAULT NULL COMMENT '问题对应在碎片表assemble_fragment的id，外键',\n" +
+                "  PRIMARY KEY (`question_id`),\n" +
+                "  KEY `questionId` (`question_id`) USING BTREE,\n" +
+                "  KEY `fragmentId` (`fragment_id`) USING BTREE\n" +
+                ") ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;\n";
         String sqlDependncey = "CREATE TABLE IF NOT EXISTS `dependency` (\n" +
                 "  `ClassName` varchar(100) DEFAULT NULL COMMENT '课程名',\n" +
                 "  `Start` varchar(100) DEFAULT NULL COMMENT '父主题名',\n" +
@@ -139,6 +170,9 @@ public class DatabaseUtils {
                 "  `FragmentID` int(20) NOT NULL AUTO_INCREMENT COMMENT '碎片ID',\n" +
                 "  `FragmentContent` longtext NOT NULL COMMENT '碎片内容',\n" +
                 "  `FragmentScratchTime` datetime DEFAULT NULL COMMENT '碎片爬取时间',\n" +
+                "  `FragmentUrl` varchar(255) DEFAULT NULL COMMENT '碎片链接',\n" +
+                "  `UserName` varchar(255) DEFAULT NULL COMMENT '添加碎片的用户名',\n" +
+                "  `SourceName` varchar(255) DEFAULT NULL COMMENT '碎片数据源',,\n" +
                 "  PRIMARY KEY (`FragmentID`)\n" +
                 ") ENGINE=MyISAM DEFAULT CHARSET=utf8;";
         String sqlSource = "CREATE TABLE IF NOT EXISTS `source` (\n" +
@@ -177,6 +211,7 @@ public class DatabaseUtils {
                 ") ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;";
         try {
             mysql.addDeleteModify(sqlAssembleFragment, params);
+            mysql.addDeleteModify(sqlAssembleFragmentQuestion, params);
             mysql.addDeleteModify(sqlDependncey, params);
             mysql.addDeleteModify(sqlDomain, params);
             mysql.addDeleteModify(sqlDomainLayer, params);
@@ -313,8 +348,8 @@ public class DatabaseUtils {
         mysql.closeconnection();
     }
 
-    public static void deleteDbByClassName() {
-        String domainName = "理论物理学家";
+    public static void deleteDbByClassName(String domainName) {
+//        String domainName = "理论物理学家";
         // 删除数据库中这门课程的数据
         List<String> tableList = new ArrayList<>();
         tableList.add(Config.DOMAIN_TABLE);
@@ -328,9 +363,14 @@ public class DatabaseUtils {
         tableList.add(Config.FACET_RELATION_TABLE);
         tableList.add(Config.ASSEMBLE_FRAGMENT_TABLE);
         tableList.add(Config.DEPENDENCY);
+
+        // 根据领域名删除Assemble_fragment和Assemble_fragment_question表格的数据
+        deleteByTableAndDomain(Config.ASSEMBLE_FRAGMENT_TABLE, Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE, domainName);
+
         for (int i = 0; i < tableList.size(); i++) {
             deleteByTableAndDomain(tableList.get(i), domainName);
         }
+
         // 更新数据库表格自动增长ID的值
         HashMap<String, Integer> map = getMaxId();
         resetTableIncrement(map);
@@ -355,6 +395,31 @@ public class DatabaseUtils {
     }
 
     /**
+     * 根据领域名删除Assemble_fragment和Assemble_fragment_question表格的数据：连表删除
+     * @param fragment_table 碎片表
+     * @param fragment_question_table 问题碎片表
+     * @param domainName 领域名
+     */
+    public static void deleteByTableAndDomain(String fragment_table, String fragment_question_table, String domainName) {
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "DELETE af, afq\n" +
+                "FROM\n" +
+                fragment_table + " AS af ,\n" +
+                fragment_question_table + " AS afq\n" +
+                "WHERE\n" +
+                "af.FragmentID = afq.fragment_id AND\n" +
+                "af.ClassName = ?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(domainName);
+        try {
+            mysql.addDeleteModify(sql, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        mysql.closeconnection();
+    }
+
+    /**
      * 获取所有表格当前最大的编号值+1，设置每个表格自动增长的值为该值
      */
     public static HashMap<String, Integer> getMaxId() {
@@ -368,6 +433,7 @@ public class DatabaseUtils {
         String sqlDomainLayerRelation = "select max(TopicRelationId) as maxTopicRelationId from " + Config.DOMAIN_LAYER_RELATION_TABLE;
         String sqlDomainTopic = "select max(TermID) as maxTermID from " + Config.DOMAIN_TOPIC_TABLE;
         String sqlAssembleFragment = "select max(FragmentID) as maxFragmentID from " + Config.ASSEMBLE_FRAGMENT_TABLE;
+        String sqlAssembleFragment_question = "select max(question_id) as maxQuestionId from " + Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE;
         try {
             map.put(Config.DOMAIN_TABLE, Integer.parseInt(mysql.returnMultipleResult(sqlDomain, params).get(0).get("maxClassID").toString()) + 1);
             map.put(Config.DOMAIN_LAYER_TABLE, Integer.parseInt(mysql.returnMultipleResult(sqlDomainLayer, params).get(0).get("maxTermID").toString()) + 1);
@@ -376,6 +442,7 @@ public class DatabaseUtils {
             map.put(Config.DOMAIN_LAYER_RELATION_TABLE, Integer.parseInt(mysql.returnMultipleResult(sqlDomainLayerRelation, params).get(0).get("maxTopicRelationId").toString()) + 1);
             map.put(Config.DOMAIN_TOPIC_TABLE, Integer.parseInt(mysql.returnMultipleResult(sqlDomainTopic, params).get(0).get("maxTermID").toString()) + 1);
             map.put(Config.ASSEMBLE_FRAGMENT_TABLE, Integer.parseInt(mysql.returnMultipleResult(sqlAssembleFragment, params).get(0).get("maxFragmentID").toString()) + 1);
+            map.put(Config.ASSEMBLE_FRAGMENT_QUESTION_TABLE, Integer.parseInt(mysql.returnMultipleResult(sqlAssembleFragment_question, params).get(0).get("maxQuestionId").toString()) + 1);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -403,6 +470,27 @@ public class DatabaseUtils {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+        mysql.closeconnection();
+    }
+
+    /**
+     * 获取数据库表格自增字段的值
+     */
+    public static void testGetGeneratedKeys() {
+        int generatedKey = 0;
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "insert into " + Config.DOMAIN_TABLE
+                + "(ClassName, SubjectName) " +
+                "values (?,?)";
+        List<Object> params = new ArrayList<Object>();
+        params.add("testClass");
+        params.add("testSubject");
+        try {
+            generatedKey = mysql.addGeneratedKey(sql, params);
+            System.out.println(generatedKey);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         mysql.closeconnection();
     }

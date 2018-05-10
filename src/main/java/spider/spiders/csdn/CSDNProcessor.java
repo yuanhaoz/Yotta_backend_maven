@@ -1,10 +1,10 @@
 package spider.spiders.csdn;
 
 import app.Config;
-import spider.spiders.webmagic.FragmentContent;
+import spider.spiders.webmagic.bean.FragmentContent;
 import spider.spiders.webmagic.ProcessorSQL;
-import spider.spiders.webmagic.SqlPipeline;
-import spider.spiders.webmagic.YangKuanSpider;
+import spider.spiders.webmagic.pipeline.SqlPipeline;
+import spider.spiders.webmagic.spider.YangKuanSpider;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
@@ -16,10 +16,19 @@ import java.util.List;
 import java.util.Map;
 
 public class CSDNProcessor implements PageProcessor{
-    private Site site = Site.me().setRetryTimes(3).setSleepTime(1000).setTimeOut(10000);
+
+    private Site site = Site.me()
+            .setRetryTimes(Config.retryTimes)
+            .setRetrySleepTime(Config.retrySleepTime)
+            .setSleepTime(Config.sleepTime)
+            .setTimeOut(Config.timeOut)
+            .addHeader("User-Agent", Config.userAgent)
+            .addHeader("Accept", "*/*");
+
     public Site getSite() {
         return site;
     }
+
     public void process(Page page) {
         List<String> fragments =  page.getHtml().xpath("div[@id='article_content']").all();
         List<String> fragmentsPureText =  page.getHtml().xpath("div[@id='article_content']/tidyText()").all();
@@ -45,19 +54,19 @@ public class CSDNProcessor implements PageProcessor{
         List<Map<String, Object>> allFacetsInformation = processorSQL.getAllFacets(Config.FACET_TABLE,courseName);
         //2.添加连接请求
         List<Request> requests = new ArrayList<Request>();
-        for(Map<String, Object> facetInformation:allFacetsInformation){
+        for(Map<String, Object> facetInformation : allFacetsInformation){
             Request request = new Request();
             String url = "http://so.csdn.net/so/search/s.do?q="
-                    +facetInformation.get("ClassName")+" "
-                    +facetInformation.get("TermName")+" "
-                    +facetInformation.get("FacetName");
+                    + facetInformation.get("ClassName") + " "
+                    + facetInformation.get("TermName") + " "
+                    + facetInformation.get("FacetName");
             //添加链接;设置额外信息
             facetInformation.put("SourceName", "csdn");
             requests.add(request.setUrl(url).setExtras(facetInformation));
         }
         YangKuanSpider.create(new CSDNProcessor())
                 .addRequests(requests)
-                .thread(5)
+                .thread(Config.THREAD)
                 .addPipeline(new SqlPipeline())
                 .addPipeline(new ConsolePipeline())
                 .runAsync();

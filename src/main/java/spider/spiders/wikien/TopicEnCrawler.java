@@ -23,6 +23,20 @@ import java.util.Set;
 public class TopicEnCrawler {
 
     /**
+     * 根据领域名存储领域
+     *
+     * @param domain 课程
+     * @return true 表示已经爬取
+     */
+    public static void storeDomain(Domain domain) {
+        List<Domain> list = new ArrayList<>();
+        list.add(domain);
+        if (!MysqlReadWriteDAO.judgeByClass(Config.DOMAIN_TABLE, domain.getClassName())) {
+            MysqlReadWriteDAO.storeDomain(list);
+        }
+    }
+
+    /**
      * 获取三层领域术语和知识主题（某门课程）
      *
      * @param domain 课程
@@ -40,6 +54,7 @@ public class TopicEnCrawler {
          */
         Boolean existLayer = MysqlReadWriteDAO.judgeByClass(Config.DOMAIN_LAYER_TABLE, domainName);
         if (!existLayer) {
+            Log.log(domain + "：正在爬取领域术语");
             layerExtract(domainName);
         } else {
             Log.log(domain + "：领域术语已经爬取");
@@ -49,23 +64,10 @@ public class TopicEnCrawler {
          */
         Boolean existTopic = MysqlReadWriteDAO.judgeByClass(Config.DOMAIN_TOPIC_TABLE, domainName);
         if (!existTopic) {
+            Log.log(domain + "：正在处理知识主题");
             topicExtract(domainName);
         } else {
             Log.log(domain + "：知识主题已经爬取");
-        }
-    }
-
-    /**
-     * 根据领域名存储领域
-     *
-     * @param domain 课程
-     * @return true 表示已经爬取
-     */
-    public static void storeDomain(Domain domain) {
-        List<Domain> list = new ArrayList<>();
-        list.add(domain);
-        if (!MysqlReadWriteDAO.judgeByClass(Config.DOMAIN_TABLE, domain.getClassName())) {
-            MysqlReadWriteDAO.storeDomain(list);
         }
     }
 
@@ -83,7 +85,6 @@ public class TopicEnCrawler {
         /**
          * 第一层
          */
-//		String domain = "数据结构";
         String domain_url = "https://en.wikipedia.org/wiki/Category:" + URLEncoder.encode(domainName, "UTF-8");
         int firstLayer = 1;
         List<Term> topicFirst = TopicEnCrawlerDAO.topic(domain_url); // 得到第一层领域术语（不含子主题）
@@ -134,11 +135,11 @@ public class TopicEnCrawler {
                         MysqlReadWriteDAO.storeLayerRelation(layer.getTermName(), firstLayer, layerThird, secondLayer, domainName); // 存储领域术语的上下位关系
                     }
                 } else {
-                    Log.log("不存在第三层领域术语源链接....");
+//                    Log.log("不存在第三层领域术语源链接....");
                 }
             }
         } else {
-            Log.log("不存在第二层领域术语源链接...");
+//            Log.log("不存在第二层领域术语源链接...");
         }
     }
 
