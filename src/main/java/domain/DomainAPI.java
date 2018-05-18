@@ -30,6 +30,37 @@ import java.util.Map;
 public class DomainAPI {
 
     @GET
+    @Path("/getDomainByCourseId")
+    @ApiOperation(value = "根据网院课程Id，返回对应的课程信息", notes = "根据网院课程Id，返回对应的课程信息")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getDomainByCourseId(
+            @ApiParam(value = "网院课程Id", required = true) @QueryParam("courseId") int courseId
+    ) {
+        Response response = null;
+        /**
+         * 读取course_wangyuan，得到网院课程Id对应的课程信息
+         */
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from " + Config.COURSE_WANGYUAN_TABLE + " where courseId=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(courseId);
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+            response = Response.status(200).entity(results).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            response = Response.status(401).entity(new error(e.toString())).build();
+        } finally {
+            mysql.closeconnection();
+        }
+        return response;
+    }
+
+    @GET
     @Path("/getDomainsBySubject")
     @ApiOperation(value = "获得学科和课程信息，不包含主题信息", notes = "获得学科和课程信息，不包含主题信息")
     @ApiResponses(value = {

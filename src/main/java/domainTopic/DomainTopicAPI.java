@@ -171,6 +171,46 @@ public class DomainTopicAPI {
 
 
     @GET
+    @Path("/getDomainTopicForWangyuanTest")
+    @ApiOperation(value = "获得指定课程下三种状态的主题", notes = "获得指定课程下三种状态的主题")
+    @ApiResponses(value = {
+            @ApiResponse(code = 401, message = "MySql数据库  查询失败"),
+            @ApiResponse(code = 200, message = "MySql数据库  查询成功", response = String.class)})
+    @Consumes("application/x-www-form-urlencoded" + ";charset=" + "UTF-8")
+    @Produces(MediaType.APPLICATION_JSON + ";charset=" + "UTF-8")
+    public static Response getDomainTopicForWangyuanTest(@ApiParam(value = "课程名字", required = true) @QueryParam("ClassName") String ClassName) {
+        Response response = null;
+        /**
+         * 根据指定领域，获得领域下所有主题
+         */
+        mysqlUtils mysql = new mysqlUtils();
+        String sql = "select * from " + Config.DOMAIN_TOPIC_TABLE + " where ClassName=?";
+        List<Object> params = new ArrayList<Object>();
+        params.add(ClassName);
+        try {
+            List<Map<String, Object>> results = mysql.returnMultipleResult(sql, params);
+            int size = results.size();
+            for (int i = 0; i < (size / 3); i++) {
+                results.get(i).put("status", "0");
+            }
+            for (int i = (size / 3); i < (size * 2 / 3); i++) {
+                results.get(i).put("status", "1");
+            }
+            for (int i = (size * 2 / 3); i < size; i++) {
+                results.get(i).put("status", "2");
+            }
+            response = Response.status(200).entity(results).build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            response = Response.status(401).entity(new error(e.toString())).build();
+        } finally {
+            mysql.closeconnection();
+        }
+        return response;
+    }
+
+
+    @GET
     @Path("/getDomainTerm")
         @ApiOperation(value = "获得指定课程下的主题", notes = "获得指定课程下所有主题")
     @ApiResponses(value = {
