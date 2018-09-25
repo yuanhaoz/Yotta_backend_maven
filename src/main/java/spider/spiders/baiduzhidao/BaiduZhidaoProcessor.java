@@ -1,26 +1,34 @@
 package spider.spiders.baiduzhidao;
 
 import app.Config;
-import spider.spiders.webmagic.FragmentContent;
+import spider.spiders.webmagic.bean.FragmentContent;
 import spider.spiders.webmagic.ProcessorSQL;
-import spider.spiders.webmagic.SqlPipeline;
-import spider.spiders.webmagic.YangKuanSpider;
+import spider.spiders.webmagic.pipeline.SqlPipeline;
+import spider.spiders.webmagic.spider.YangKuanSpider;
 import us.codecraft.webmagic.Page;
 import us.codecraft.webmagic.Request;
 import us.codecraft.webmagic.Site;
 import us.codecraft.webmagic.pipeline.ConsolePipeline;
 import us.codecraft.webmagic.processor.PageProcessor;
-import utils.Log;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class BaiduZhidaoProcessor implements PageProcessor {
-    private Site site = Site.me().setRetryTimes(3).setSleepTime(1000).setTimeOut(10000);
+
+    private Site site = Site.me()
+            .setRetryTimes(Config.retryTimes)
+            .setRetrySleepTime(Config.retrySleepTime)
+            .setSleepTime(Config.sleepTime)
+            .setTimeOut(Config.timeOut)
+            .addHeader("User-Agent", Config.userAgent)
+            .addHeader("Accept", "*/*");
+
     public Site getSite() {
         return site;
     }
+
     public void process(Page page) {
         List<String> fragments = page.getHtml().xpath("pre[@class='best-text mb-10']").all();
         List<String> fragmentsPureText = page.getHtml().xpath("pre[@class='best-text mb-10']/tidyText()").all();

@@ -29,6 +29,9 @@ public class FacetSimple {
         this.facetLayer = facetLayer;
     }
 
+    public FacetSimple() {
+    }
+
     /**
      * @param facetName
      * @param facetLayer

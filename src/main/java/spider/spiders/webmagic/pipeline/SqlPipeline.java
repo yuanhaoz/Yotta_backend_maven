@@ -1,6 +1,7 @@
-package spider.spiders.webmagic;
+package spider.spiders.webmagic.pipeline;
 
 import app.Config;
+import spider.spiders.webmagic.bean.FragmentContent;
 import us.codecraft.webmagic.ResultItems;
 import us.codecraft.webmagic.Task;
 import us.codecraft.webmagic.pipeline.Pipeline;
@@ -25,33 +26,33 @@ public class SqlPipeline implements Pipeline{
             List<String> fragmentsPureText = fragmentContent.getFragmentsPureText();
             for (int i = 0; i < fragments.size(); i++) {
                 mysqlUtils mysql = new mysqlUtils();
-                //定义插入语句参数
+                // 定义插入语句参数
                 String addSql = "insert into " + Config.ASSEMBLE_FRAGMENT_TABLE
                         + "(FragmentContent, Text, FragmentScratchTime,TermID,TermName,FacetName,FacetLayer,ClassName,SourceName) values (?,?,?,?,?,?,?,?,?)";
 
-                //分面信息
+                // 分面信息
                 Map<String,Object> facetTableMap = resultItems.getRequest().getExtras();
-                //添加碎片表需要的元组值
+                // 添加碎片表需要的元组值
                 List<Object> params = new ArrayList<Object>();
-                /*FragmentID 碎片ID 自动递增不需要*/
-                /* FragmentContent 碎片内容*/
+                // FragmentID 碎片ID 自动递增不需要
+                // FragmentContent 碎片内容
                 params.add(fragments.get(i));
                 params.add(fragmentsPureText.get(i));
-                /*FragmentScratchTime 碎片爬取时间*/
+                // FragmentScratchTime 碎片爬取时间
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
                 String date = df.format(new Date());// new Date()为获取当前系统时间，也可使用当前时间戳
                 params.add(date);
-                /*TermID 主题ID*/
+                // TermID 主题ID
                 params.add(facetTableMap.get("TermID"));
-                /*TermName 主题名*/
+                // TermName 主题名
                 params.add(facetTableMap.get("TermName"));
-                /*FacetName 分面名*/
+                // FacetName 分面名
                 params.add(facetTableMap.get("FacetName"));
-                /*FacetLayer 分面层*/
+                // FacetLayer 分面层
                 params.add(facetTableMap.get("FacetLayer"));
-                /*ClassName 课程名*/
+                // ClassName 课程名
                 params.add(facetTableMap.get("ClassName"));
-                /*Source 数据源*/
+                // Source 数据源
                 params.add(facetTableMap.get("SourceName"));
                 try {
                     mysql.addDeleteModify(addSql,params);
